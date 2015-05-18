@@ -104,25 +104,24 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
    getMedalsSilver = queries(getMedalsSilverQuery, cursor, conn)
    getMedalsBronzeQuery = ("""select value,SUM(value) AS TotalMedals, country_id from medals WHERE value = 3 GROUP BY value, country_id ORDER BY value, SUM(value) DESC""")
    getMedalsBronze = queries(getMedalsBronzeQuery, cursor, conn)
-   leaderboard = ''
-   for i in getMedalsGold:
-       #list/dictionary wie json machen! dann ordnen
+   #counter = 0
+   print(getMedalsGold)
+   leaderboard = getMedalwinners(getMedalsGold, getMedalsSilver, getMedalsBronze)
+   print(leaderboard)
+   print(type(leaderboard))
+   bubbleSort(leaderboard)
+   print(leaderboard)
+   data = ''
+   for i in leaderboard:
        print(i)
-       print("\n")
-   #data = ''.join(data)
-   #data = '{"response":"success", "type":"bets", "data":[%s]}'%data
-   if 1 == 1:
-    self.write_message(json.dumps({"response":"success", "type":"leaderboard",
-                                   "data":[
-                                       {"country": "Sweden", "gold": "3", "silver":"1", "bronze":"9"},
-                                       {"country": "England", "gold":"0", "silver":"0", "bronze":"1"},
-                                       {"country": "USA", "gold": "8", "silver":"1", "bronze":"2"},
-                                       {"country": "Thailand", "gold":"0", "silver":"2", "bronze":"1"}
-                                       ]}).encode('utf-8')) 
-   else:
-    self.write_message(json.dumps({"response":"failure", "type":"leaderboard", "data":""}).encode('utf-8'))
-   # databaseabfrage
+       data = data + i
+       data = data + (",")
+   response = ''.join(data)
+   response = '{"response":"success", "type":"bets", "data":[%s]}'%response
+   self.write_message(response) 
    print("Leaderboard")
+
+
   # --- Tokenabfrage ---
   elif request['get'] == "tokens":
    user = request['user_hash']
@@ -184,6 +183,59 @@ def queries(command, cursor, conn, readOrWrite = 'r', countResponses = '2'):
     except:
         print("FEHLER")
         conn.rollback()
+
+def getMedalwinners(getMedalsGold, getMedalsSilver, getMedalsBronze):
+   leaderboard = []
+   for i in getMedalsGold:
+       country_id = i[2]
+       gold = i[1]
+       silver = 0
+       bronze = 0
+       #getMedalsGold.remove(i)
+       for x in getMedalsSilver:
+           if country_id == x[2]:
+               silver = x[1]
+               getMedalsSilver.remove(x)
+       for x in getMedalsBronze:
+           if country_id == x[2]:
+               bronze = x[1]
+               getMedalsBronze.remove(x)
+       leaderboard.append('{"country":"%s", "gold":"%s", "silver":"%s", "bronze":"%s"}'%(country_id, gold, silver, bronze))
+   for i in getMedalsSilver:
+       country_id = i[2]
+       silver = i[1]
+       bronze = 0
+       #getMedalsSilver.remove(i)
+       for x in getMedalsBronze:
+           if country_id == x[2]:
+               bronze = x[1]
+               getMedalsBronze.remove(x)
+       leaderboard.append('{"country":"%s", "gold":"0", "silver":"%s", "bronze":"%s"}'%(country_id, silver, bronze))
+   for i in getMedalsBronze:
+       country_id = i[2]
+       bronze = i[1]
+       #getMedalsBronze.remove(i)
+       leaderboard.append('{"country":"%s", "gold":"0", "silver":"0", "bronze":"%s"}'%(country_id, bronze))
+   return leaderboard
+
+def bubbleSort(medalList):
+    for element in range(len(medalList)-1,0,-1):
+        for i in range(element):
+            if eval(medalList[i])["gold"]<eval(medalList[i+1])["gold"]:
+                temp = medalList[i]
+                medalList[i] = medalList[i+1]
+                medalList[i+1] = temp
+            elif eval(medalList[i])["gold"] == eval(medalList[i+1])["gold"]:
+                if eval(medalList[i])["silver"]<eval(medalList[i+1])["silver"]:
+                   temp = medalList[i]
+                   medalList[i] = medalList[i+1]
+                   medalList[i+1] = temp
+                elif eval(medalList[i])["silver"] == eval(medalList[i+1])["silver"]:
+                   if eval(medalList[i])["bronze"]<eval(medalList[i+1])["bronze"]:
+                      temp = medalList[i]
+                      medalList[i] = medalList[i+1]
+                      medalList[i+1] = temp
+
 
 if __name__ == "__main__":
  http_server = tornado.httpserver.HTTPServer(application)

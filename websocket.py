@@ -62,7 +62,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
        countryNameQuery = """SELECT name FROM country WHERE c_id = '%s'"""%line[1]
        countryName = queries(countryNameQuery, cursor, conn, countResponses = '1')
        data.append('{"event_id":"%s", "country":"%s", "tokens":"%s"},'%(line[3], countryName, line[4]))
-   data = ''.join(data)
+   data = ''.join(data)[:-1]
    data = '{"response":"success", "type":"bets", "data":[%s]}'%data
    print(data)
    self.write_message(data)
@@ -116,7 +116,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
        print(i)
        data = data + i
        data = data + (",")
-   response = ''.join(data)
+   response = ''.join(data)[:-1]
    response = '{"response":"success", "type":"bets", "data":[%s]}'%response
    self.write_message(response) 
    print("Leaderboard")
@@ -125,40 +125,69 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
   # --- Tokenabfrage ---
   elif request['get'] == "tokens":
    user = request['user_hash']
-   if 1 == 1:
-    self.write_message(json.dumps({"response":"success", "type":"tokens", "data":[{"tokens":"22"}]}).encode('utf-8'))
-   else:
-    self.write_message(json.dumps({"response":"failure", "type":"tokens", "data":""}).encode('utf-8'))
-   # databaseabfrage
+   userTokensQuery = """SELECT token FROM user WHERE user_hash = '%s'"""%user
+   userTokens = queries(userTokensQuery, cursor, conn)
+   data = '{"response":"success", "type":"tokens", "data":[{"tokens":"%s"}]}'%userTokens[0]
+   self.write_message(data)
+   
+
+  # --- Events ---
   elif request['get'] == "events":
-   if 1 == 1:
-    self.write_message(json.dumps({"response":"success", "type":"events", "data":[{"id":"1", "name":"womens longjump", "data":"21.12.2015 23:00:11"}]}).encode('utf-8'))
-   else:
-    self.write_message(json.dumps({"response":"failure", "type":"events", "data":""}).encode('utf-8'))
-   # databaseabfrage
+   eventsInQuery = """SELECT * FROM event"""
+   events = queries(eventsInQuery, cursor, conn)
+   data = []
+   for line in events:
+       data.append('{"event_id":"%s", "eventName":"%s", "date":"%s"},'%(line[0], line[1], line[2]))
+   data = ''.join(data)[:-1]
+   data = '{"response":"success", "type":"events", "data":[%s]}'%data
+   print(data)
+   self.write_message(data)
    print("die events")
+
+  # --- Voucher get---
   elif request['get'] == "vouchers":
    user = request['user_hash']
-   if 1 == 1:
-    self.write_message(json.dumps({"response":"success", "type":"vouchers", "data":[
-        {"voucher_id":"2"},
-        {"voucher_id":"3"}
-        ]}).encode('utf-8'))
-   else:
-    self.write_message(json.dumps({"response":"failure","type":"vouchers", "data":""}).encode('utf-8'))
-   # databaseabfrage
+   userVoucherQuery = """SELECT u1.v_id, u2.value FROM uservoucher AS u1 INNER JOIN voucher AS u2 ON u1.v_id=u2.v_id WHERE user_hash = "%s";"""%user
+   userVoucher = queries(userVoucherQuery, cursor, conn)
+   data = []
+   for line in userVoucher:
+       data.append('{"voucher_id":"%s", "voucherValue":"%s"},'%(line[0], line[1]))
+   data = ''.join(data)[:-1]
+   data = '{"response":"success", "type":"voucher", "data":[%s]}'%data
+   print(data)
+   self.write_message(data)
+   
+  # --- Voucher create---
   elif request['get'] == "vouchers_create":
    user = request['user_hash']
    for line in request['data']:
     print("erhaltener Voucher: %s"%line['Voucher_id'])
-   if 1 == 1:
-    self.write_message(json.dumps({"response":"success","type":"vouchers_create", "data":[
-        {"voucher_id":"2"},
-        {"voucher_id":"3"},
-        {"voucher_id":"4"}
-        ]}).encode('utf-8'))
-    self.write_message(json.dumps({"response":"failure","type":"vouchers_create", "data":""}).encode('utf-8'))
-	
+    tokenCostQuery = """SELECT cost FROM voucher WHERE v_id = '%s'"""%line['Voucher_id']
+    tokenCost = queries(tokenCostQuery, cursor, conn)
+    userTokenQuery = """SELECT token FROM user WHERE user_hash = '%s'"""%user
+    userToken = queries(userTokenQuery, cursor, conn)
+    #print(tokenCost[0][0])
+    #print(userToken[0][0])
+    if userToken[0][0] >= tokenCost[0][0]:
+        createUserVoucherQuery = """INSERT INTO userVoucher(user_hash, v_id) VALUES("%s", "%s")"""%(user, line['Voucher_id'])
+        decreaseUserTokenQuery = """UPDATE user SET token = '%s' WHERE user_hash = '%s'"""%(userToken[0][0]-tokenCost[0][0], user)
+        try:
+            queries(createUserVoucherQuery, cursor, conn, readOrWrite = 'w')
+            queries(decreaseUserTokenQuery, cursor, conn, readOrWrite = 'w')
+            userVoucherQuery = """SELECT u1.v_id, u2.value FROM uservoucher AS u1 INNER JOIN voucher AS u2 ON u1.v_id=u2.v_id WHERE user_hash = "%s";"""%user
+            userVoucher = queries(userVoucherQuery, cursor, conn)
+            data = []
+            for line in userVoucher:
+                data.append('{"voucher_id":"%s", "voucherValue":"%s"},'%(line[0], line[1]))
+                data = ''.join(data)[:-1]
+            data = '{"response":"success", "type":"voucher_create", "data":[%s]}'%data
+            self.write_message(data)
+        except:
+            self.write_message(json.dumps({"response":"failure","type":"vouchers_create", "data":""}).encode('utf-8'))
+    else:
+        print("NOT enough tokens")
+        self.write_message(json.dumps({"response":"failure","type":"vouchers_create", "data":""}).encode('utf-8'))
+
  def on_close(self):
   print ("Verbindung geschlossen")
   myDbConnect.close(conn)
@@ -173,10 +202,10 @@ def queries(command, cursor, conn, readOrWrite = 'r', countResponses = '2'):
             if countResponses == '1':
                 entry = str(cursor.fetchone()[0])
                 print("Entry: %s" %entry)
-            else:
+            elif countResponses == '2':
                 entry = cursor.fetchall()
             return entry
-        else:
+        elif readOrWrite == 'w':
             cursor.execute(command)
             print("success")
             conn.commit()

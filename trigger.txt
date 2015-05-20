@@ -1,0 +1,15 @@
+
+mysql> delimiter //
+
+mysql> CREATE TRIGGER tokenupdate BEFORE INSERT ON medals
+       FOR EACH ROW
+       BEGIN
+		IF NEW.value = '1' THEN
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 2 + token;
+		ELSEIF NEW.value = '2' THEN
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.5 + token;
+		ELSEIF NEW.value = '3' THEN
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.2 + token;
+		END IF;
+       END;//
+mysql> delimiter ;

@@ -1,0 +1,18 @@
+Userlogins:
+	s.send('{"get":"login", "user_hash":"abcd", "country":"Venezuela"}');
+
+bets:
+	SET	s.send('{"get":"bet_set", "user_hash":"abcd", "bet":[{"event_id":"1", "country":"400", "tokens":"10"}]}');
+	GET	s.send('{"get":"bets", "user_hash":"abcd"}');
+
+voucher:
+	get uservoucher		s.send('{"get":"vouchers", "user_hash":"abcd"}');
+				"{"response":"success", "type":"events", "data":[{"voucher_id":"1", "voucherValue":"10"}]}"	
+
+	create voucher		s.send('{"get":"vouchers_create", "user_hash":"abcd", "data":[{"Voucher_id":"1"}]}');
+
+leaderboard:
+	GET	s.send('{"get":"leaderboard"}');
+
+tokens:
+	GET	s.send('{"get":"tokens", "user_hash":"abcd"}');

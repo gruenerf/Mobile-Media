@@ -1,0 +1,19 @@
+{
+	"name": "yog-app",
+	"version": "0.0.1",
+	"authors": [
+		"Ferdinand Grüner"
+	],
+	"dependencies": {
+		"jquery": "*",
+		"bootstrap-sass": "*",
+		"jquery-touchswipe": "*"
+	},
+	"exportsOverride": {
+		"exportsOverride": {
+			"bootstrap-sass-official": {
+				"": "*"
+			}
+		}
+	}
+}

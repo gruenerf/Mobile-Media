@@ -4,6 +4,7 @@ import tornado.ioloop
 import tornado.web
 import json
 import myDbConnect
+import datetime;
 
 
 class WebsocketHandler(tornado.websocket.WebSocketHandler):
@@ -76,13 +77,38 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
    print("c_id: %s"%country_id)
    userExistQuery = ("""SELECT EXISTS(SELECT 1 FROM user WHERE user_hash = '%s' AND country_id = '%s')""")%(user,country_id)
    userExist = queries(userExistQuery, cursor, conn, countResponses = '1')
+   userLoginExistsQuery = ("""SELECT EXISTS(SELECT 1 FROM userlogin WHERE user_hash = '%s')""")%user
+   userLoginExists = queries(userLoginExistsQuery, cursor, conn, countResponses = '1')
+   getLastLoginDateQuery = ("""SELECT last_login FROM userlogin WHERE user_hash = '%s'""")%user
    print("userExists: %s"%userExist)
    if country_id is not None and userExist == '1':
        print("user exists!")
-       self.write_message(json.dumps({"response":"success", "type":"login"}).encode('utf-8'))
+       if userLoginExists == '1':
+           today = datetime.datetime.today()
+           getLastLoginDate = queries(getLastLoginDateQuery, cursor, conn, countResponses = '1')
+           getLastLoginDate = datetime.datetime.strptime(getLastLoginDate, '%Y-%m-%d')
+           #print(today)
+           #print(getLastLoginDate)
+           dateDiff = today - getLastLoginDate
+           #print(today - getLastLoginDate)
+           if dateDiff > datetime.timedelta(days=1):
+               updateUserLoginQuery = """UPDATE userlogin SET today_login = '1',last_login = '%s' WHERE user_hash = '%s'"""%(today.date(), user)
+               queries(updateUserLoginQuery, cursor, conn, readOrWrite = 'w')
+               increaseUserTokensQuery = """UPDATE user SET token = token + 1 WHERE user_hash = '%s'"""%(user)
+               queries(increaseUserTokensQuery, cursor, conn, readOrWrite = 'w')
+           else:
+               todaysTokenQuery = """SELECT today_login FROM userlogin WHERE user_hash = '%s'"""%user
+               todaysToken = int(queries(todaysTokenQuery, cursor, conn, countResponses = '1'))
+               if todaysToken < 3:
+                   increaseDayTokenQuery = """UPDATE userlogin SET today_login = today_login + 1 WHERE user_hash = '%s'"""%(user)
+                   queries(increaseDayTokenQuery, cursor, conn, readOrWrite = 'w')
+                   increaseUserTokensQuery = """UPDATE user SET token = token + 1 WHERE user_hash = '%s'"""%(user)
+                   queries(increaseUserTokensQuery, cursor, conn, readOrWrite = 'w')
+           #print("Date: %d and DBDate: %d")%(today, getLastLoginDate)
+       self.write_message(json.dumps({"response":"success", "type":"login"}).encode('utf-8'))       
    elif country_id is not None and userExist == '0':
        print("user does not exist or does not exist in this country! --> user created")
-       newUserQuery = ("""INSERT INTO user(user_hash, country_id, token) VALUES('%s', '%s', 0)"""%(user, country_id))
+       newUserQuery = ("""INSERT INTO user(user_hash, country_id, token) VALUES('%s', '%s', 1)"""%(user, country_id))
        print(newUserQuery)
        try:
            newUser = queries(newUserQuery, cursor, conn, readOrWrite = 'w')
@@ -211,6 +237,7 @@ def queries(command, cursor, conn, readOrWrite = 'r', countResponses = '2'):
             conn.commit()
     except:
         print("FEHLER")
+        print(command)
         conn.rollback()
 
 def getMedalwinners(getMedalsGold, getMedalsSilver, getMedalsBronze):

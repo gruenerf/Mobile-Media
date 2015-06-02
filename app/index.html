@@ -9,14 +9,15 @@
 	<script src="assets/dist/js/scripts.min.js"></script>
 </head>
 <body>
+
 <div class="container">
 	<div id="sidebar">
 		<ul>
-			<li><a href="#">Home</a></li>
-			<li><a href="#">Leaderboard</a></li>
-			<li><a href="#">Bets</a></li>
-			<li><a href="#">Vouchers</a></li>
-			<li><a href="#">Retailers</a></li>
+			<li class="sidebar_item" id="link_home">Home</li>
+			<li class="sidebar_item" id="link_leaderboard">Leaderboard</li>
+			<li class="sidebar_item" id="link_bets">Bets</li>
+			<li class="sidebar_item" id="link_vouchers">Vouchers</li>
+			<li class="sidebar_item" id="link_retailers">Retailers</li>
 		</ul>
 	</div>
 
@@ -24,6 +25,10 @@
 		<a href="#" data-toggle=".container" id="sidebar-toggle" class="menu-icon">
 			<span></span>
 		</a>
+		<header>
+			<div class="flag"></div>
+		</header>
+
 		<div class="loading" id="loading"></div>
 		<div class="content swipe-area" id="content"></div>
 	</div>

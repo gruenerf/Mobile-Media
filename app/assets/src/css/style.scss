@@ -98,6 +98,22 @@ html {
 	color: $color_font;
 	background: $color_background;
 
+	header {
+		display: inline-block;
+		float: right;
+		right: 0;
+		top: 0;
+
+		.flag {
+			height: 2.5em;
+			width: 2.5em;
+			border-radius: 2.5em;
+			background-image: url("../img/flag.png");
+			background-size: cover;
+			background-position-x: 50%;
+		}
+	}
+
 	.container {
 		position: relative;
 		height: 100%;
@@ -125,21 +141,19 @@ html {
 
 				li {
 					margin: 0;
+					padding: 15px 20px;
+					font-size: 16px;
+					font-weight: 100;
+					color: white;
+					text-decoration: none;
+					display: block;
+					border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+					transition: background 0.3s ease-in-out;
 
-					&:hover a {
+					&:hover, &.active {
 						background: $color_link;
 					}
 
-					a {
-						padding: 15px 20px;
-						font-size: 16px;
-						font-weight: 100;
-						color: white;
-						text-decoration: none;
-						display: block;
-						border-bottom: 1px solid rgba(0,0,0,0.15);
-						transition: background 0.3s ease-in-out;
-					}
 				}
 			}
 		}
@@ -278,45 +292,149 @@ html {
 					line-height: 160%;
 				}
 
-				.medals{
+				&.home {
+					.medals {
+						width: 100%;
+						height: 100px;
+						margin: 30px 0;
+
+						.medal {
+							width: 33%;
+							display: inline-block;
+							float: left;
+
+							.img {
+								width: 100%;
+							}
+
+							.number {
+								margin-top: 10px;
+								font-size: 30px;
+							}
+
+							&:after {
+								content: ".";
+								clear: both;
+								display: block;
+								visibility: hidden;
+								height: 0px;
+							}
+						}
+					}
+
+					.tokens {
+						border: 1px solid white;
+						border-radius: 5px;
+						color: $color_token;
+						padding-bottom: 10px;
+
+						.name {
+							font-size: 46px;
+							text-transform: uppercase;
+						}
+
+						.number {
+							font-size: 100px;
+						}
+					}
+
+				.link_collection {
+					margin-top: 20px;
+
+					.link {
+						clear: both;
+						display: block;
+						width: 100%;
+						padding: 10px;
+						background-color: $color_token;
+						border-radius: 5px;
+						border: 1px solid white;
+						margin-top: 5px;
+					}
+				}
+				}
+
+				.voucher {
 					width: 100%;
-					margin: 30px 0;
+					margin: 20px 0;
+					height: 120px;
+					border-image: url("../img/stamp-border.png") 8 round;
+					border-width: 6px;
+					border-style: solid;
+					background: $color_background;
 
-					.medal{
-						width: 33%;
-						display: inline-block;
-						float: left;
+					&:nth-child(5) .wrapper {
+						background-color: #5a000c;
+					}
 
-						.img{
-							width: 100%;
+					&:nth-child(4) .wrapper {
+						background-color: #003d86;
+					}
 
-							img{
+					&:nth-child(1) .wrapper {
+						background-color: #009a46;
+					}
 
+					&:nth-child(2) .wrapper {
+						background-color: #1591d4;
+					}
+
+					&:nth-child(3) .wrapper {
+						background-color: #f98726;
+					}
+
+					.wrapper {
+						width: 100%;
+						height: 100%;
+
+						.discount, .price {
+							padding: 20px 0 24px;
+							float: left;
+							display: table-cell;
+							height: 100%;
+							vertical-align: middle;
+							text-shadow: 1px 1px 2px black;
+
+							&:first-child {
+								border-right: 1px dashed #ffffff;
+								width: 40%;
+							}
+
+							&:nth-child(2) {
+								width: 60%;
 							}
 						}
 
-						.number{
-							margin-top: 10px;
-							font-size: 30px;
+						.price {
+							p {
+								&:nth-child(1) {
+									line-height: 40px;
+									font-size: 40px;
+								}
+
+								&:nth-child(2) {
+									font-size: 18px;
+									line-height: 20px;
+								}
+							}
+						}
+
+						.discount {
+							p {
+								&:nth-child(1) {
+									line-height: 40px;
+									font-size: 40px;
+								}
+
+								&:nth-child(2) {
+									font-size: 20px;
+									line-height: 20px;
+								}
+							}
 						}
 					}
 				}
-
-				.tokens{
-					color: $color_token;
-
-					.name{
-						font-size: 46px;
-						text-transform: uppercase;
-					}
-
-					.number{
-						font-size: 100px;
-					}
-				}
-
 			}
 		}
 	}
-
 }

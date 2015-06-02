@@ -14,12 +14,19 @@ var sidebar = (function ($) {
 	 * Initializing function
 	 */
 	function init() {
+
+		/**
+		 * Click on menu button
+		 */
 		$("[data-toggle]").click(function() {
 			$(this).toggleClass('open');
 			var toggle_el = $(this).data("toggle");
 			$(toggle_el).toggleClass("open-sidebar");
 		});
 
+		/**
+		 * Enable swipe functionality
+		 */
 		$(".main-content").swipe({
 			swipeStatus:function(event, phase, direction, distance, duration, fingers)
 			{
@@ -35,11 +42,32 @@ var sidebar = (function ($) {
 				}
 			}
 		});
+
+		/**
+		 * Add active class to current page in menu
+		 */
+		$(".sidebar_item").on('click', function(){
+			$(".sidebar_item").removeClass('active');
+			$(this).addClass("active");
+		});
+
+	}
+
+	/**
+	 * Closes the sidebar
+	 */
+	function close() {
+		$(".container").removeClass("open-sidebar");
+		$("#sidebar-toggle").removeClass('open');
 	}
 
 	return {
 		init: function () {
 			init();
+		},
+
+		close: function() {
+			close();
 		}
 	};
 

@@ -11292,46 +11292,38 @@ var ajax = (function ($) {
 		var content = $("#content");
 		var body = $("body");
 
-		body.on('click', "#home", function () {
+		body.on('click', "#link_home", function () {
 			content.load("view/home.html", function () {
 				content.attr('class', 'content home');
+				sidebar.close();
 			});
 		});
 
-		body.on('click', "#recipes", function () {
-			content.load("view/recipes.html", function () {
-				content.attr('class', 'content recipes');
-				recipe.recipe();
+		body.on('click', "#link_leaderboard", function () {
+			content.load("view/leaderboard.html", function () {
+				content.attr('class', 'content leaderboard');
+				sidebar.close();
 			});
 		});
 
-		body.on('click', "#fridge", function () {
-			content.load("view/fridge.html", function () {
-				content.attr('class', 'content fridge');
-				websocket.getFridgeItems();
+		body.on('click', "#link_bets", function () {
+			content.load("view/bets.html", function () {
+				content.attr('class', 'content bets');
+				sidebar.close();
 			});
 		});
 
-		body.on('click', "#shoppinglist", function () {
-			content.load("view/shoppinglist.html", function () {
-				content.attr('class', 'content shoppingList');
-				websocket.getShoppingList();
+		body.on('click', "#link_vouchers", function () {
+			content.load("view/vouchers.html", function () {
+				content.attr('class', 'content vouchers');
+				sidebar.close();
 			});
 		});
 
-		body.on('click', "#settings", function () {
-			content.load("view/settings.html", function () {
-				content.attr('class', 'content settings');
-				settings.setSettings();
-			});
-		});
-
-		body.on('click', "#addNewRecipe", function () {
-			content.load("view/addNewRecipe.html", function () {
-				content.attr('class', 'content addNewRecipe');
-				websocket.getRecipes();
-				calendar.setUp();
-				recipe.addNew();
+		body.on('click', "#link_retailers", function () {
+			content.load("view/retailers.html", function () {
+				content.attr('class', 'content retailers');
+				sidebar.close();
 			});
 		});
 	}
@@ -11365,7 +11357,7 @@ var ajax = (function ($) {
 	function loadHome(){
 		var content = $("#content");
 
-		content.load("view/home.html", function () {
+		content.load("view/vouchers.html", function () {
 			content.attr('class', 'content home');
 		});
 	}
@@ -11732,12 +11724,19 @@ var sidebar = (function ($) {
 	 * Initializing function
 	 */
 	function init() {
+
+		/**
+		 * Click on menu button
+		 */
 		$("[data-toggle]").click(function() {
 			$(this).toggleClass('open');
 			var toggle_el = $(this).data("toggle");
 			$(toggle_el).toggleClass("open-sidebar");
 		});
 
+		/**
+		 * Enable swipe functionality
+		 */
 		$(".main-content").swipe({
 			swipeStatus:function(event, phase, direction, distance, duration, fingers)
 			{
@@ -11753,11 +11752,32 @@ var sidebar = (function ($) {
 				}
 			}
 		});
+
+		/**
+		 * Add active class to current page in menu
+		 */
+		$(".sidebar_item").on('click', function(){
+			$(".sidebar_item").removeClass('active');
+			$(this).addClass("active");
+		});
+
+	}
+
+	/**
+	 * Closes the sidebar
+	 */
+	function close() {
+		$(".container").removeClass("open-sidebar");
+		$("#sidebar-toggle").removeClass('open');
 	}
 
 	return {
 		init: function () {
 			init();
+		},
+
+		close: function() {
+			close();
 		}
 	};
 

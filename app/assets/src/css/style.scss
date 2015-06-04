@@ -125,7 +125,8 @@ html {
 		}
 	}
 
-	.container {
+	#container {
+		display: none;
 		position: relative;
 		height: 100%;
 		width: 100%;
@@ -249,7 +250,7 @@ html {
 				margin: 260px auto 0;
 				width: 100px;
 				height: 100px;
-				border: 5px solid $color_background;
+				border: 5px solid $color_link_dark;
 				border-radius: 50%;
 				background-color: transparent;
 
@@ -263,7 +264,7 @@ html {
 					width: 82px;
 					height: 82px;
 					border-radius: 50%;
-					background-color: $color_background;
+					background-color: $color_link_dark;
 				}
 
 				&:after {

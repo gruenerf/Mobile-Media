@@ -11326,20 +11326,24 @@ var ajax = (function ($) {
 	/**
 	 * Loads the Home
 	 */
-	function loadHome(){
+	function loadHome() {
 		var content = $("#content");
+		var container = $("#container");
+		var login = $("#login");
 
-		content.load("view/login.html", function () {
+		content.load("view/home.html", function () {
 			content.attr('class', 'content home');
 			sidebar.close();
+			login.hide();
 			content.show();
+			container.show();
 		});
 	}
 
 	/**
 	 * Loads Leaderboard
 	 */
-	function loadLeaderboard(){
+	function loadLeaderboard() {
 		var content = $("#content");
 
 		content.load("view/leaderboard.html", function () {
@@ -11351,7 +11355,7 @@ var ajax = (function ($) {
 	/**
 	 * Loads Bets
 	 */
-	function loadBets(){
+	function loadBets() {
 		var content = $("#content");
 
 		content.load("view/bets.html", function () {
@@ -11363,7 +11367,7 @@ var ajax = (function ($) {
 	/**
 	 * Loads Vouchers
 	 */
-	function loadVouchers(){
+	function loadVouchers() {
 		var content = $("#content");
 
 		content.load("view/vouchers.html", function () {
@@ -11375,12 +11379,23 @@ var ajax = (function ($) {
 	/**
 	 * Loads Retailers
 	 */
-	function loadRetailers(){
+	function loadRetailers() {
 		var content = $("#content");
 
 		content.load("view/retailers.html", function () {
 			content.attr('class', 'content retailers');
 			sidebar.close();
+		});
+	}
+
+	/**
+	 *  Loads the login page
+	 */
+	function loadLogin() {
+		var login = $("#login");
+
+		login.load("view/login.html", function () {
+			userSetup.loadCountries();
 		});
 	}
 
@@ -11394,6 +11409,9 @@ var ajax = (function ($) {
 		},
 		loadHome: function () {
 			loadHome();
+		},
+		loadLogin: function () {
+			loadLogin();
 		}
 	};
 
@@ -11492,7 +11510,7 @@ var cordova = (function ($) {
 		} else if (content.hasClass('addNewRecipe')) {
 			ajax.loadRecipes();
 		} else {
-			ajax.loadHome();
+			//ajax.loadHome();
 		}
 	}
 
@@ -11592,10 +11610,54 @@ var userSetup = (function ($) {
 	 */
 	function init() {
 
-		if (!localStorage.userHash) {
-			localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		}
+	}
 
+	/**
+	 * Loads countries to setup login screen
+	 */
+	function loadCountries() {
+
+		// Read countries out of json
+		$.getJSON('assets/dist/json/countries.json', function (data) {
+			var string = "";
+			var countries = data.countries;
+
+			// If countries exist
+			if (countries.length) {
+				for (var i = 0; i < countries.length; i++) {
+					string += "<option value=\"{'id':'" + countries[i].id + "','name':'" + countries[i].name + "'}\">" + countries[i].name + "</option>";
+				}
+			} else {
+				string = "<option>No countries so far.</option>";
+			}
+
+			// Append the options to the select box
+			$("#countries").append(string);
+
+			// If country gets submitted
+			$("#continue_button").on("click", function () {
+
+				// Get selected country
+				var countryval = $('#countries').val();
+
+				if (countryval !== null) {
+
+					// Store country id and name in localstorage
+					var country = JSON.parse(countryval.replace(/'/g, "\""));
+					localStorage.countryId = country.id;
+					localStorage.countryName = country.name;
+
+					// Generate Userhash
+					localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
+					// Redirect to homescreen
+					ajax.loadHome();
+				}
+				else {
+					$("#login_error").append('You have to select a country.');
+				}
+			});
+		});
 	}
 
 	/**
@@ -11615,6 +11677,9 @@ var userSetup = (function ($) {
 	return {
 		init: function () {
 			init();
+		},
+		loadCountries: function () {
+			loadCountries();
 		}
 	};
 
@@ -11666,14 +11731,6 @@ var websocket = (function ($) {
 	}
 
 	/**
-	 * Removes loading screen and shows content
-	 */
-	function loadHomeScreen() {
-		$("#loading").hide();
-		ajax.loadHome();
-	}
-
-	/**
 	 * Function that waits until Connection is established or it times out after 15sec
 	 * @param socket
 	 * @param times
@@ -11682,7 +11739,11 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
-					loadHomeScreen();
+					if(firstStart()){
+						loadLogin();
+					}else{
+						loadHomeScreen();
+					}
 				} else if (times === 30) {
 					throwConnectionError();
 				} else {
@@ -11701,27 +11762,53 @@ var websocket = (function ($) {
 	}
 
 	/**
+	* Removes loading screen and shows content
+	*/
+	function loadHomeScreen() {
+		$("#loading").hide();
+		ajax.loadHome();
+	}
+
+	/**
+	 * Removes loading screen and shows Login
+	 */
+	function loadLogin(){
+		$("#loading").hide();
+		ajax.loadLogin();
+	}
+
+	/**
+	 * Returns true if app is started the first time
+	 */
+	function firstStart(){
+		return !localStorage.userHash;
+	}
+
+	/**
 	 * Returns the server Response with all Nations
 	 */
-	function getNations() {
+	function getCountries() {
 		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'recipes'}));
+			con.getInstance().send(JSON.stringify({'get': 'countries'}));
 			con.getInstance().onmessage = function (msg) {
-				var recipe_list = $("#select_recipe");
-				var string = "";
+				console.log(msg);
 
-				var response = JSON.parse(msg.data);
-				var recipes = response.recipes;
 
-				if (recipes.length) {
-					for (var i = 0; i < recipes.length; i++) {
-						string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
-					}
-				} else {
-					string = "<option>No recipes so far.</option>";
-				}
+				/*var recipe_list = $("#select_recipe");
+				 var string = "";
 
-				recipe_list.append(string);
+				 var response = JSON.parse(msg.data);
+				 var recipes = response.recipes;
+
+				 if (recipes.length) {
+				 for (var i = 0; i < recipes.length; i++) {
+				 string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
+				 }
+				 } else {
+				 string = "<option>No recipes so far.</option>";
+				 }
+
+				 recipe_list.append(string);*/
 			};
 		}
 	}
@@ -11730,6 +11817,9 @@ var websocket = (function ($) {
 	return {
 		init: function () {
 			init();
+		},
+		getCountries: function () {
+			getCountries();
 		}
 	};
 
@@ -11754,7 +11844,6 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
-			userSetup.init();
 		}
 	};
 

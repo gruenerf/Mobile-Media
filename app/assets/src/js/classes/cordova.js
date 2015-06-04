@@ -23,7 +23,7 @@ var cordova = (function ($) {
 		} else if (content.hasClass('addNewRecipe')) {
 			ajax.loadRecipes();
 		} else {
-			ajax.loadHome();
+			//ajax.loadHome();
 		}
 	}
 

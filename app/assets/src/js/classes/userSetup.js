@@ -15,10 +15,54 @@ var userSetup = (function ($) {
 	 */
 	function init() {
 
-		if (!localStorage.userHash) {
-			localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-		}
+	}
 
+	/**
+	 * Loads countries to setup login screen
+	 */
+	function loadCountries() {
+
+		// Read countries out of json
+		$.getJSON('assets/dist/json/countries.json', function (data) {
+			var string = "";
+			var countries = data.countries;
+
+			// If countries exist
+			if (countries.length) {
+				for (var i = 0; i < countries.length; i++) {
+					string += "<option value=\"{'id':'" + countries[i].id + "','name':'" + countries[i].name + "'}\">" + countries[i].name + "</option>";
+				}
+			} else {
+				string = "<option>No countries so far.</option>";
+			}
+
+			// Append the options to the select box
+			$("#countries").append(string);
+
+			// If country gets submitted
+			$("#continue_button").on("click", function () {
+
+				// Get selected country
+				var countryval = $('#countries').val();
+
+				if (countryval !== null) {
+
+					// Store country id and name in localstorage
+					var country = JSON.parse(countryval.replace(/'/g, "\""));
+					localStorage.countryId = country.id;
+					localStorage.countryName = country.name;
+
+					// Generate Userhash
+					localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+
+					// Redirect to homescreen
+					ajax.loadHome();
+				}
+				else {
+					$("#login_error").append('You have to select a country.');
+				}
+			});
+		});
 	}
 
 	/**
@@ -38,6 +82,9 @@ var userSetup = (function ($) {
 	return {
 		init: function () {
 			init();
+		},
+		loadCountries: function () {
+			loadCountries();
 		}
 	};
 

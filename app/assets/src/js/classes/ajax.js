@@ -59,20 +59,24 @@ var ajax = (function ($) {
 	/**
 	 * Loads the Home
 	 */
-	function loadHome(){
+	function loadHome() {
 		var content = $("#content");
+		var container = $("#container");
+		var login = $("#login");
 
-		content.load("view/login.html", function () {
+		content.load("view/home.html", function () {
 			content.attr('class', 'content home');
 			sidebar.close();
+			login.hide();
 			content.show();
+			container.show();
 		});
 	}
 
 	/**
 	 * Loads Leaderboard
 	 */
-	function loadLeaderboard(){
+	function loadLeaderboard() {
 		var content = $("#content");
 
 		content.load("view/leaderboard.html", function () {
@@ -84,7 +88,7 @@ var ajax = (function ($) {
 	/**
 	 * Loads Bets
 	 */
-	function loadBets(){
+	function loadBets() {
 		var content = $("#content");
 
 		content.load("view/bets.html", function () {
@@ -96,7 +100,7 @@ var ajax = (function ($) {
 	/**
 	 * Loads Vouchers
 	 */
-	function loadVouchers(){
+	function loadVouchers() {
 		var content = $("#content");
 
 		content.load("view/vouchers.html", function () {
@@ -108,12 +112,23 @@ var ajax = (function ($) {
 	/**
 	 * Loads Retailers
 	 */
-	function loadRetailers(){
+	function loadRetailers() {
 		var content = $("#content");
 
 		content.load("view/retailers.html", function () {
 			content.attr('class', 'content retailers');
 			sidebar.close();
+		});
+	}
+
+	/**
+	 *  Loads the login page
+	 */
+	function loadLogin() {
+		var login = $("#login");
+
+		login.load("view/login.html", function () {
+			userSetup.loadCountries();
 		});
 	}
 
@@ -127,6 +142,9 @@ var ajax = (function ($) {
 		},
 		loadHome: function () {
 			loadHome();
+		},
+		loadLogin: function () {
+			loadLogin();
 		}
 	};
 

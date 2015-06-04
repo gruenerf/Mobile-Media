@@ -46,14 +46,6 @@ var websocket = (function ($) {
 	}
 
 	/**
-	 * Removes loading screen and shows content
-	 */
-	function loadHomeScreen() {
-		$("#loading").hide();
-		ajax.loadHome();
-	}
-
-	/**
 	 * Function that waits until Connection is established or it times out after 15sec
 	 * @param socket
 	 * @param times
@@ -62,7 +54,11 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
-					loadHomeScreen();
+					if(firstStart()){
+						loadLogin();
+					}else{
+						loadHomeScreen();
+					}
 				} else if (times === 30) {
 					throwConnectionError();
 				} else {
@@ -81,27 +77,53 @@ var websocket = (function ($) {
 	}
 
 	/**
+	* Removes loading screen and shows content
+	*/
+	function loadHomeScreen() {
+		$("#loading").hide();
+		ajax.loadHome();
+	}
+
+	/**
+	 * Removes loading screen and shows Login
+	 */
+	function loadLogin(){
+		$("#loading").hide();
+		ajax.loadLogin();
+	}
+
+	/**
+	 * Returns true if app is started the first time
+	 */
+	function firstStart(){
+		return !localStorage.userHash;
+	}
+
+	/**
 	 * Returns the server Response with all Nations
 	 */
-	function getNations() {
+	function getCountries() {
 		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'recipes'}));
+			con.getInstance().send(JSON.stringify({'get': 'countries'}));
 			con.getInstance().onmessage = function (msg) {
-				var recipe_list = $("#select_recipe");
-				var string = "";
+				console.log(msg);
 
-				var response = JSON.parse(msg.data);
-				var recipes = response.recipes;
 
-				if (recipes.length) {
-					for (var i = 0; i < recipes.length; i++) {
-						string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
-					}
-				} else {
-					string = "<option>No recipes so far.</option>";
-				}
+				/*var recipe_list = $("#select_recipe");
+				 var string = "";
 
-				recipe_list.append(string);
+				 var response = JSON.parse(msg.data);
+				 var recipes = response.recipes;
+
+				 if (recipes.length) {
+				 for (var i = 0; i < recipes.length; i++) {
+				 string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
+				 }
+				 } else {
+				 string = "<option>No recipes so far.</option>";
+				 }
+
+				 recipe_list.append(string);*/
 			};
 		}
 	}
@@ -110,6 +132,9 @@ var websocket = (function ($) {
 	return {
 		init: function () {
 			init();
+		},
+		getCountries: function () {
+			getCountries();
 		}
 	};
 

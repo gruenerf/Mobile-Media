@@ -18,7 +18,6 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
-			userSetup.init();
 		}
 	};
 

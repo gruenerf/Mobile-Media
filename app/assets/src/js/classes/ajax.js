@@ -21,43 +21,26 @@ var ajax = (function ($) {
 	 * Function that binds ajax calls to click
 	 */
 	function reload() {
-
-		var content = $("#content");
 		var body = $("body");
 
 		body.on('click', "#link_home", function () {
-			content.load("view/home.html", function () {
-				content.attr('class', 'content home');
-				sidebar.close();
-			});
+			loadHome();
 		});
 
 		body.on('click', "#link_leaderboard", function () {
-			content.load("view/leaderboard.html", function () {
-				content.attr('class', 'content leaderboard');
-				sidebar.close();
-			});
+			loadLeaderboard();
 		});
 
 		body.on('click', "#link_bets", function () {
-			content.load("view/bets.html", function () {
-				content.attr('class', 'content bets');
-				sidebar.close();
-			});
+			loadBets();
 		});
 
 		body.on('click', "#link_vouchers", function () {
-			content.load("view/vouchers.html", function () {
-				content.attr('class', 'content vouchers');
-				sidebar.close();
-			});
+			loadVouchers();
 		});
 
 		body.on('click', "#link_retailers", function () {
-			content.load("view/retailers.html", function () {
-				content.attr('class', 'content retailers');
-				sidebar.close();
-			});
+			loadRetailers();
 		});
 	}
 
@@ -69,19 +52,8 @@ var ajax = (function ($) {
 		var body = $("body");
 
 		content.load("view/error.html", function () {
-			body.css("background", "#ffffff");
 			content.show();
 		});
-	}
-
-	/**
-	 * Loads the Homescreen
-	 */
-	function loadHomeScreen() {
-		var content = $("#content");
-		var header = $("#header");
-		content.load("view/home.html");
-		content.show();
 	}
 
 	/**
@@ -90,33 +62,58 @@ var ajax = (function ($) {
 	function loadHome(){
 		var content = $("#content");
 
-		content.load("view/vouchers.html", function () {
+		content.load("view/login.html", function () {
 			content.attr('class', 'content home');
+			sidebar.close();
+			content.show();
 		});
 	}
 
 	/**
-	 * Loads an Recipe screen
+	 * Loads Leaderboard
 	 */
-	function loadRecipes() {
+	function loadLeaderboard(){
 		var content = $("#content");
 
-		content.load("view/recipes.html", function () {
-			content.attr('class', 'content recipes');
-			recipe.recipe();
+		content.load("view/leaderboard.html", function () {
+			content.attr('class', 'content leaderboard');
+			sidebar.close();
 		});
 	}
 
 	/**
-	 * Loads an Settings
+	 * Loads Bets
 	 */
-	function loadSettings() {
+	function loadBets(){
 		var content = $("#content");
 
-		content.load("view/settings.html", function () {
-			content.attr('class', 'content settings');
-			//settings.setSettings();
-			//settings.update();
+		content.load("view/bets.html", function () {
+			content.attr('class', 'content bets');
+			sidebar.close();
+		});
+	}
+
+	/**
+	 * Loads Vouchers
+	 */
+	function loadVouchers(){
+		var content = $("#content");
+
+		content.load("view/vouchers.html", function () {
+			content.attr('class', 'content vouchers');
+			sidebar.close();
+		});
+	}
+
+	/**
+	 * Loads Retailers
+	 */
+	function loadRetailers(){
+		var content = $("#content");
+
+		content.load("view/retailers.html", function () {
+			content.attr('class', 'content retailers');
+			sidebar.close();
 		});
 	}
 
@@ -128,17 +125,8 @@ var ajax = (function ($) {
 		loadError: function () {
 			loadError();
 		},
-		loadHomeScreen: function () {
-			loadHomeScreen();
-		},
 		loadHome: function () {
 			loadHome();
-		},
-		loadRecipes: function () {
-			loadRecipes();
-		},
-		loadSettings: function () {
-			loadSettings();
 		}
 	};
 

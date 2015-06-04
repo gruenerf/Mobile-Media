@@ -11288,43 +11288,26 @@ var ajax = (function ($) {
 	 * Function that binds ajax calls to click
 	 */
 	function reload() {
-
-		var content = $("#content");
 		var body = $("body");
 
 		body.on('click', "#link_home", function () {
-			content.load("view/home.html", function () {
-				content.attr('class', 'content home');
-				sidebar.close();
-			});
+			loadHome();
 		});
 
 		body.on('click', "#link_leaderboard", function () {
-			content.load("view/leaderboard.html", function () {
-				content.attr('class', 'content leaderboard');
-				sidebar.close();
-			});
+			loadLeaderboard();
 		});
 
 		body.on('click', "#link_bets", function () {
-			content.load("view/bets.html", function () {
-				content.attr('class', 'content bets');
-				sidebar.close();
-			});
+			loadBets();
 		});
 
 		body.on('click', "#link_vouchers", function () {
-			content.load("view/vouchers.html", function () {
-				content.attr('class', 'content vouchers');
-				sidebar.close();
-			});
+			loadVouchers();
 		});
 
 		body.on('click', "#link_retailers", function () {
-			content.load("view/retailers.html", function () {
-				content.attr('class', 'content retailers');
-				sidebar.close();
-			});
+			loadRetailers();
 		});
 	}
 
@@ -11336,19 +11319,8 @@ var ajax = (function ($) {
 		var body = $("body");
 
 		content.load("view/error.html", function () {
-			body.css("background", "#ffffff");
 			content.show();
 		});
-	}
-
-	/**
-	 * Loads the Homescreen
-	 */
-	function loadHomeScreen() {
-		var content = $("#content");
-		var header = $("#header");
-		content.load("view/home.html");
-		content.show();
 	}
 
 	/**
@@ -11357,33 +11329,58 @@ var ajax = (function ($) {
 	function loadHome(){
 		var content = $("#content");
 
-		content.load("view/vouchers.html", function () {
+		content.load("view/login.html", function () {
 			content.attr('class', 'content home');
+			sidebar.close();
+			content.show();
 		});
 	}
 
 	/**
-	 * Loads an Recipe screen
+	 * Loads Leaderboard
 	 */
-	function loadRecipes() {
+	function loadLeaderboard(){
 		var content = $("#content");
 
-		content.load("view/recipes.html", function () {
-			content.attr('class', 'content recipes');
-			recipe.recipe();
+		content.load("view/leaderboard.html", function () {
+			content.attr('class', 'content leaderboard');
+			sidebar.close();
 		});
 	}
 
 	/**
-	 * Loads an Settings
+	 * Loads Bets
 	 */
-	function loadSettings() {
+	function loadBets(){
 		var content = $("#content");
 
-		content.load("view/settings.html", function () {
-			content.attr('class', 'content settings');
-			//settings.setSettings();
-			//settings.update();
+		content.load("view/bets.html", function () {
+			content.attr('class', 'content bets');
+			sidebar.close();
+		});
+	}
+
+	/**
+	 * Loads Vouchers
+	 */
+	function loadVouchers(){
+		var content = $("#content");
+
+		content.load("view/vouchers.html", function () {
+			content.attr('class', 'content vouchers');
+			sidebar.close();
+		});
+	}
+
+	/**
+	 * Loads Retailers
+	 */
+	function loadRetailers(){
+		var content = $("#content");
+
+		content.load("view/retailers.html", function () {
+			content.attr('class', 'content retailers');
+			sidebar.close();
 		});
 	}
 
@@ -11395,17 +11392,8 @@ var ajax = (function ($) {
 		loadError: function () {
 			loadError();
 		},
-		loadHomeScreen: function () {
-			loadHomeScreen();
-		},
 		loadHome: function () {
 			loadHome();
-		},
-		loadRecipes: function () {
-			loadRecipes();
-		},
-		loadSettings: function () {
-			loadSettings();
 		}
 	};
 
@@ -11515,200 +11503,6 @@ var cordova = (function ($) {
 	};
 
 })(jQuery);;/**
- * This file handels recipe calendar and so on
- *
- * @class recipe
- * @static
- * @author Ferdinand Grüner
- * @version  1.0
- * @return {Object} init-Function
- */
-
-var recipe = (function ($) {
-
-	/**
-	 * Defines a recipe object
-	 * @param id
-	 * @param date
-	 * @param name
-	 */
-	function Recipe(id, date, name) {
-		this.id = id;
-		this.date = date;
-		this.name = name;
-	}
-
-	/**
-	 * Get recipe Array out of local storage
-	 * @returns {Array}
-	 */
-	function retrieveRecipes() {
-		if(localStorage.recipes !== undefined){
-			var storageString = localStorage.recipes;
-			var splitString = storageString.split(";");
-			var storageArray = [];
-			for (var i = 0; i < splitString.length; i++) {
-				if (splitString[i] !== '') {
-					storageArray.push(getJson(splitString[i]));
-				}
-			}
-			return storageArray;
-		}
-
-		return [];
-	}
-
-	/**
-	 * Transfers object to json
-	 * @param object
-	 * @returns {*}
-	 */
-	function toJson(object) {
-		return JSON.stringify(object);
-	}
-
-	/**
-	 * Returns parsed Json
-	 * @param object
-	 * @returns {*}
-	 */
-	function getJson(object) {
-		return JSON.parse(object);
-	}
-
-	/**
-	 * Initializing function
-	 */
-	function addNew() {
-		$('#addNew').click(function () {
-			var date = $('#calendar').val();
-			var recipe = $("#select_recipe").val();
-			if (date !== undefined && recipe !== null) {
-				var counter = (localStorage.recipes !== undefined && localStorage.recipes !== "")? retrieveRecipes()[retrieveRecipes().length - 1].id : 0;
-				var object = new Recipe(++counter, date, recipe);
-				localStorage.recipes = localStorage.recipes === undefined ? '' : localStorage.recipes;
-				localStorage.recipes += toJson(object) + ';';
-				ajax.loadRecipes();
-			}
-			else {
-				$("#add_new_error").empty().append("Fill out both fields.");
-			}
-		});
-	}
-
-	/**
-	 * Returns all Recipes
-	 */
-	function getAllRecipes() {
-		var recipeArray = retrieveRecipes();
-		var string = "";
-
-		if (recipeArray.length) {
-			string += "<tr>" +
-			"<td>Recipe</td>" +
-			"<td>Date</td>" +
-			"<td>Delete</td>" +
-			"</tr>";
-			for (var i = 0; i < recipeArray.length; i++) {
-				string += "<tr class='recipe_item'>" +
-				"<td class='item_name'>" + recipeArray[i].name + "</td>" +
-				"<td class='item_date'>" + recipeArray[i].date + "</td>" +
-				"<td class='item_delete' data-id='" + recipeArray[i].id + "'><img src='assets/dist/img/delete.png'></td>" +
-				"</tr>";
-			}
-		} else {
-			string = "<tr class='no_items'>" +
-			"<td>Currently no recipes.</td>" +
-			"</tr>";
-		}
-
-		$("#recipe_list").append(string);
-	}
-
-	/**
-	 * Deletes a Recipe with a certian id out of json in localstorage
-	 */
-	function deleteRecipe() {
-		$(".item_delete").click(function () {
-			var id = $(this).data("id");
-			var recipeArray = retrieveRecipes();
-
-			if (recipeArray.length) {
-				recipeArray = $.grep(recipeArray, function (n, i) {
-					return n.id !== id;
-				});
-			}
-
-			localStorage.removeItem('recipes');
-			localStorage.recipes = '';
-
-			if (recipeArray.length) {
-				for (var i = 0; i < recipeArray.length; i++) {
-					localStorage.recipes += toJson(recipeArray[i]) + ';';
-				}
-			}
-
-			ajax.loadRecipes();
-		});
-	}
-
-	/**
-	 * Function that deletes all the old recipes
-	 * @returns {Array}
-	 */
-	function deleteOldRecipes() {
-		var recipeArray = retrieveRecipes();
-
-		recipeArray = $.grep(recipeArray, function (n) {
-			var dateDiff = calendar.dateDiff('d', new Date(), n.date);
-			return dateDiff >= 0;
-		});
-
-		localStorage.removeItem('recipes');
-		localStorage.recipes = '';
-
-		if (recipeArray.length) {
-			for (var i = 0; i < recipeArray.length; i++) {
-				localStorage.recipes += toJson(recipeArray[i]) + ';';
-			}
-		}
-	}
-
-	/**
-	 * Function that returns all Recipes in the set time frame
-	 * @returns {Array}
-	 */
-	function getRecipesForShoppingList() {
-		var recipeArray = retrieveRecipes();
-
-		recipeArray = $.grep(recipeArray, function (n) {
-			var dateDiff = calendar.dateDiff('d', new Date(), n.date);
-			return  dateDiff >= 0 && dateDiff <= localStorage.days;
-		});
-
-		return recipeArray;
-	}
-
-
-	return {
-		init: function () {
-			deleteOldRecipes();
-		},
-		addNew: function () {
-			addNew();
-		},
-		recipe: function () {
-			getAllRecipes();
-			deleteRecipe();
-		},
-		getAll: function () {
-			return retrieveRecipes();
-		},
-		getRecipesForShoppingList: function(){
-			return getRecipesForShoppingList();
-		}
-	};
-})(jQuery);;/**
  * This file handels the sidebar menu
  *
  * @class sidebar
@@ -11782,6 +11576,49 @@ var sidebar = (function ($) {
 	};
 
 })(jQuery);;/**
+ * This file handels the first start of the app
+ *
+ * @class userSetup
+ * @static
+ * @author Ferdinand Grüner
+ * @version  1.0
+ * @return {Object} init-Function
+ */
+
+var userSetup = (function ($) {
+
+	/**
+	 * Initializing function
+	 */
+	function init() {
+
+		if (!localStorage.userHash) {
+			localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+		}
+
+	}
+
+	/**
+	 * Generate a random String
+	 * @param length
+	 * @param chars
+	 * @returns {string}
+	 */
+	function randomString(length, chars) {
+		var result = '';
+		for (var i = length; i > 0; --i) {
+			result += chars[Math.round(Math.random() * (chars.length - 1))];
+		}
+		return result;
+	}
+
+	return {
+		init: function () {
+			init();
+		}
+	};
+
+})(jQuery);;/**
  * This file handels all calls to the websocket
  *
  * @class websocket
@@ -11800,7 +11637,7 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://37.235.60.89:9999/ws');
+			var websocket = new WebSocket('ws://87.106.24.155:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -11833,7 +11670,7 @@ var websocket = (function ($) {
 	 */
 	function loadHomeScreen() {
 		$("#loading").hide();
-		ajax.loadHomeScreen();
+		ajax.loadHome();
 	}
 
 	/**
@@ -11846,7 +11683,6 @@ var websocket = (function ($) {
 			function () {
 				if (socket.readyState === 1) {
 					loadHomeScreen();
-
 				} else if (times === 30) {
 					throwConnectionError();
 				} else {
@@ -11861,13 +11697,13 @@ var websocket = (function ($) {
 	 */
 	function throwConnectionError() {
 		$("#loading").hide();
-		ajax.loadHomeScreen();
+		ajax.loadError();
 	}
 
 	/**
-	 * Returns the server Response with all recipes
+	 * Returns the server Response with all Nations
 	 */
-	function getRecipes() {
+	function getNations() {
 		if (con.getInstance().readyState === 1) {
 			con.getInstance().send(JSON.stringify({'get': 'recipes'}));
 			con.getInstance().onmessage = function (msg) {
@@ -11890,110 +11726,10 @@ var websocket = (function ($) {
 		}
 	}
 
-	/**
-	 * Returns the server Response with all current fridge items
-	 */
-	function getFridgeItems() {
-		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'fridgeItems'}));
-			con.getInstance().onmessage = function (msg) {
-				var fridge_list = $("#fridge_list");
-				var string = "";
-
-				var response = JSON.parse(msg.data);
-				var fridgeItems = response.fridgeItems;
-
-				if (fridgeItems.length) {
-					for (var i = 0; i < fridgeItems.length; i++) {
-						string += "<div class='fridge_item'>" +
-						"<div class='item_data'>" +
-						"<div class='item_name'>" + fridgeItems[i].name + "</div>" +
-						"<div class='item_size'>" + fridgeItems[i].size + fridgeItems[i].unit + "</div>" +
-						"</div>" +
-						"<div class='item_percentage' style='height:" + fridgeItems[i].percentage + "%'></div>" +
-						"</div>";
-					}
-				} else {
-					string = "<div class='fridge_item'>" +
-					"<div class='item_name'>Currently no fridge items.</div>" +
-					"</div>";
-				}
-
-				fridge_list.append(string);
-			};
-		}
-	}
-
-	/**
-	 * Returns the server Response with the current shoppinglist
-	 */
-	function getShoppingList() {
-
-		// Read localstorage for recipes
-		var recipeArray = recipe.getRecipesForShoppingList();
-		var recipes = [];
-
-		// Make json string
-		if(recipeArray.length){
-			for (var i = 0; i < recipeArray.length; i++) {
-				var array = {};
-				array.name = recipeArray[i].name;
-				recipes.push(array);
-			}
-		}
-
-		// Make complete JSON string
-		var recipeString = JSON.stringify({"get": "shoppingList", "recipes": recipes});
-
-		// Ask via websocket for shoppinglist
-		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(recipeString);
-			con.getInstance().onmessage = function (msg) {
-				var shopping_list = $("#shopping_list");
-				var string = "";
-
-				var response = JSON.parse(msg.data);
-				var shoppingList = response.shoppingList;
-
-				if (shoppingList.length) {
-					 string += "<tr>"+
-									"<td>Item</td>"+
-									"<td>Amount</td>"+
-								"</tr>";
-					for (var i = 0; i < shoppingList.length; i++) {
-						if(shoppingList[i].size !== 0) {
-							string += "<tr>" +
-							"<td class='item_name'>" + shoppingList[i].name + "</td>" +
-							"<td class='item_size'>" + shoppingList[i].size + shoppingList[i].unit + "</td>" +
-							"</tr>";
-						}
-					}
-				} else {
-					string = "<tr class='no_items'>" +
-								"<td>No recommendations so far.</td>" +
-							 "</tr>";
-				}
-
-				shopping_list.append(string);
-			};
-		}
-	}
 
 	return {
 		init: function () {
 			init();
-		},
-
-		getRecipes: function () {
-			return getRecipes();
-		},
-
-		getFridgeItems: function () {
-			return getFridgeItems();
-		},
-
-		getShoppingList: function () {
-			return getShoppingList();
 		}
 	};
 
@@ -12018,7 +11754,7 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
-			recipe.init();
+			userSetup.init();
 		}
 	};
 
@@ -12034,5 +11770,6 @@ jQuery(window).load(function(){
 
 	sidebar.init();
 });
+
 
 

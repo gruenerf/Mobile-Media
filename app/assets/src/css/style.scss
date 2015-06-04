@@ -96,21 +96,32 @@ html {
 	font-family: $font;
 	font-size: 12px;
 	color: $color_font;
-	background: $color_background;
+	background: $color_link_dark;
 
 	header {
 		display: inline-block;
 		float: right;
 		right: 0;
 		top: 0;
+		line-height: 30px;
 
-		.flag {
-			height: 2.5em;
-			width: 2.5em;
-			border-radius: 2.5em;
-			background-image: url("../img/flag.png");
-			background-size: cover;
-			background-position-x: 50%;
+		.tokens {
+			display: inline-block;
+			color: $color_token;
+			padding-bottom: 10px;
+
+			img {
+				vertical-align: middle;
+				display: inline-block;
+				height: 30px;
+				margin-right: 5px;
+			}
+
+			.number {
+				display: inline-block;
+				font-size: 30px;
+				vertical-align: middle;
+			}
 		}
 	}
 
@@ -133,6 +144,7 @@ html {
 			box-sizing: border-box;
 			background: $color_link_dark url("../img/mountains.png") no-repeat bottom;
 			background-size: contain;
+			border-right: 1px solid rgba(0, 0, 0, 0.2);
 
 			ul {
 				margin: 0;
@@ -147,7 +159,7 @@ html {
 					color: white;
 					text-decoration: none;
 					display: block;
-					border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+					border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 					transition: background 0.3s ease-in-out;
 
 					&:hover, &.active {
@@ -295,8 +307,39 @@ html {
 				&.home {
 					.medals {
 						width: 100%;
-						height: 100px;
-						margin: 30px 0;
+						height: 184px;
+						margin: 60px 0 0;
+						padding: 10px 0 20px;
+						border-radius: 5px 5px 0 0;
+						border: 1px solid #ffffff;
+						background-color: rgba(255, 255, 255, .1);
+
+						.country{
+							display: block;
+							line-height: 30px;
+							padding-bottom: 10px;
+							margin-bottom: 20px;
+							border-bottom: 1px solid #ffffff;
+
+							.country_flag {
+								vertical-align: middle;
+								display: inline-block;
+								height: 30px;
+								width: 30px;
+								border-radius: 5px;
+								background-image: url("../img/flag.png");
+								background-size: cover;
+								background-position-x: 50%;
+							}
+
+							.country_name{
+								padding-left: 10px;
+								vertical-align: middle;
+								font-size: 30px;
+								display: inline-block;
+							}
+						}
+
 
 						.medal {
 							width: 33%;
@@ -305,6 +348,10 @@ html {
 
 							.img {
 								width: 100%;
+
+								img{
+									width: 50px;
+								}
 							}
 
 							.number {
@@ -322,36 +369,41 @@ html {
 						}
 					}
 
-					.tokens {
-						border: 1px solid white;
-						border-radius: 5px;
-						color: $color_token;
-						padding-bottom: 10px;
+					.link_collection {
 
-						.name {
-							font-size: 46px;
-							text-transform: uppercase;
+						.link {
+							display: inline-block;
+							width: 50%;
+							height: 130px;
+							padding: 20px;
+							border: 1px solid white;
+							float: left;
+
+							img {
+								display: block;
+								margin: 0 auto 10px;
+								background-color: transparent;
+							}
 						}
 
-						.number {
-							font-size: 100px;
+						:nth-child(1) {
+							background-color: rgba(90, 0, 12, .2);
+						}
+
+						:nth-child(2) {
+							background-color: rgba(0, 61, 134, .2);
+						}
+
+						:nth-child(3) {
+							background-color: rgba(0, 154, 70, .2);
+							border-radius: 0 0 0 5px;
+						}
+
+						:nth-child(4) {
+							background-color: rgba(249, 135, 38, .2);
+							border-radius: 0 0 5px 0;
 						}
 					}
-
-				.link_collection {
-					margin-top: 20px;
-
-					.link {
-						clear: both;
-						display: block;
-						width: 100%;
-						padding: 10px;
-						background-color: $color_token;
-						border-radius: 5px;
-						border: 1px solid white;
-						margin-top: 5px;
-					}
-				}
 				}
 
 				.voucher {

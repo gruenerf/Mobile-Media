@@ -18,7 +18,7 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
-			recipe.init();
+			userSetup.init();
 		}
 	};
 
@@ -34,5 +34,6 @@ jQuery(window).load(function(){
 
 	sidebar.init();
 });
+
 
 

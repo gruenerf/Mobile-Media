@@ -17,7 +17,7 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://37.235.60.89:9999/ws');
+			var websocket = new WebSocket('ws://87.106.24.155:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -50,7 +50,7 @@ var websocket = (function ($) {
 	 */
 	function loadHomeScreen() {
 		$("#loading").hide();
-		ajax.loadHomeScreen();
+		ajax.loadHome();
 	}
 
 	/**
@@ -63,7 +63,6 @@ var websocket = (function ($) {
 			function () {
 				if (socket.readyState === 1) {
 					loadHomeScreen();
-
 				} else if (times === 30) {
 					throwConnectionError();
 				} else {
@@ -78,13 +77,13 @@ var websocket = (function ($) {
 	 */
 	function throwConnectionError() {
 		$("#loading").hide();
-		ajax.loadHomeScreen();
+		ajax.loadError();
 	}
 
 	/**
-	 * Returns the server Response with all recipes
+	 * Returns the server Response with all Nations
 	 */
-	function getRecipes() {
+	function getNations() {
 		if (con.getInstance().readyState === 1) {
 			con.getInstance().send(JSON.stringify({'get': 'recipes'}));
 			con.getInstance().onmessage = function (msg) {
@@ -107,110 +106,10 @@ var websocket = (function ($) {
 		}
 	}
 
-	/**
-	 * Returns the server Response with all current fridge items
-	 */
-	function getFridgeItems() {
-		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'fridgeItems'}));
-			con.getInstance().onmessage = function (msg) {
-				var fridge_list = $("#fridge_list");
-				var string = "";
-
-				var response = JSON.parse(msg.data);
-				var fridgeItems = response.fridgeItems;
-
-				if (fridgeItems.length) {
-					for (var i = 0; i < fridgeItems.length; i++) {
-						string += "<div class='fridge_item'>" +
-						"<div class='item_data'>" +
-						"<div class='item_name'>" + fridgeItems[i].name + "</div>" +
-						"<div class='item_size'>" + fridgeItems[i].size + fridgeItems[i].unit + "</div>" +
-						"</div>" +
-						"<div class='item_percentage' style='height:" + fridgeItems[i].percentage + "%'></div>" +
-						"</div>";
-					}
-				} else {
-					string = "<div class='fridge_item'>" +
-					"<div class='item_name'>Currently no fridge items.</div>" +
-					"</div>";
-				}
-
-				fridge_list.append(string);
-			};
-		}
-	}
-
-	/**
-	 * Returns the server Response with the current shoppinglist
-	 */
-	function getShoppingList() {
-
-		// Read localstorage for recipes
-		var recipeArray = recipe.getRecipesForShoppingList();
-		var recipes = [];
-
-		// Make json string
-		if(recipeArray.length){
-			for (var i = 0; i < recipeArray.length; i++) {
-				var array = {};
-				array.name = recipeArray[i].name;
-				recipes.push(array);
-			}
-		}
-
-		// Make complete JSON string
-		var recipeString = JSON.stringify({"get": "shoppingList", "recipes": recipes});
-
-		// Ask via websocket for shoppinglist
-		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(recipeString);
-			con.getInstance().onmessage = function (msg) {
-				var shopping_list = $("#shopping_list");
-				var string = "";
-
-				var response = JSON.parse(msg.data);
-				var shoppingList = response.shoppingList;
-
-				if (shoppingList.length) {
-					 string += "<tr>"+
-									"<td>Item</td>"+
-									"<td>Amount</td>"+
-								"</tr>";
-					for (var i = 0; i < shoppingList.length; i++) {
-						if(shoppingList[i].size !== 0) {
-							string += "<tr>" +
-							"<td class='item_name'>" + shoppingList[i].name + "</td>" +
-							"<td class='item_size'>" + shoppingList[i].size + shoppingList[i].unit + "</td>" +
-							"</tr>";
-						}
-					}
-				} else {
-					string = "<tr class='no_items'>" +
-								"<td>No recommendations so far.</td>" +
-							 "</tr>";
-				}
-
-				shopping_list.append(string);
-			};
-		}
-	}
 
 	return {
 		init: function () {
 			init();
-		},
-
-		getRecipes: function () {
-			return getRecipes();
-		},
-
-		getFridgeItems: function () {
-			return getFridgeItems();
-		},
-
-		getShoppingList: function () {
-			return getShoppingList();
 		}
 	};
 

@@ -11416,76 +11416,6 @@ var ajax = (function ($) {
 	};
 
 })(jQuery);;/**
- * This file handels all date/calendar related functions
- *
- * @class calendar
- * @static
- * @author Ferdinand Grüner
- * @version  1.0
- * @return {Object} init-Function
- */
-
-var calendar = (function ($) {
-
-
-	/**
-	 * Function that defines the difference between two dates
-	 * @param datepart
-	 * @param fromdate
-	 * @param todate
-	 * @returns {number}
-	 */
-
-	function dateDiff(datepart, fromDate, toDate) {
-		datepart = datepart.toLowerCase();
-
-		var res = toDate.split(".");
-		var day = res[0];
-		var month = res[1] - 1;
-		var year = res[2];
-
-		//Difference in milliseconds
-		var diff = new Date(year, month, day) - fromDate;
-
-		var divideBy = {
-			w: 604800000,
-			d: 86400000,
-			h: 3600000,
-			n: 60000,
-			s: 1000
-		};
-
-		return Math.floor(diff / divideBy[datepart]) + 1;
-	}
-
-	/**
-	 * Initializes Datepicker
-	 */
-	function setUpDatepicker() {
-		/**
-		 * Initialize datepicker
-		 */
-		$('#calendar').datepicker({
-			inline: true,
-			firstDay: 1,
-			showOtherMonths: true,
-			dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-			monthNames: ['January', 'February', 'March', 'April', 'May', 'June',
-				'July', 'August', 'September', 'October', 'November', 'December'],
-			dateFormat: 'dd.mm.yy',
-			minDate: new Date()
-		});
-	}
-
-	return {
-		dateDiff: function (datepart, fromDate, toDate) {
-			return dateDiff(datepart, fromDate, toDate);
-		},
-		setUp: function () {
-			setUpDatepicker();
-		}
-	};
-})(jQuery);;/**
  * This file handels cordova settings
  *
  * @class cordova
@@ -11644,17 +11574,21 @@ var userSetup = (function ($) {
 
 					// Store country id and name in localstorage
 					var country = JSON.parse(countryval.replace(/'/g, "\""));
+
+					var countryName = country.name;
 					localStorage.countryId = country.id;
-					localStorage.countryName = country.name;
+					localStorage.countryName = countryName;
+
 
 					// Generate Userhash
-					localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+					var userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+					localStorage.userHash = userHash;
 
-					// Redirect to homescreen
-					ajax.loadHome();
+					websocket.createUser(userHash, countryName);
 				}
 				else {
-					$("#login_error").append('You have to select a country.');
+					var error = $("#login_error");
+					error.show().empty().append('You have to select a country.');
 				}
 			});
 		});
@@ -11739,9 +11673,9 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
-					if(firstStart()){
+					if (firstStart()) {
 						loadLogin();
-					}else{
+					} else {
 						loadHomeScreen();
 					}
 				} else if (times === 30) {
@@ -11762,8 +11696,8 @@ var websocket = (function ($) {
 	}
 
 	/**
-	* Removes loading screen and shows content
-	*/
+	 * Removes loading screen and shows content
+	 */
 	function loadHomeScreen() {
 		$("#loading").hide();
 		ajax.loadHome();
@@ -11772,7 +11706,7 @@ var websocket = (function ($) {
 	/**
 	 * Removes loading screen and shows Login
 	 */
-	function loadLogin(){
+	function loadLogin() {
 		$("#loading").hide();
 		ajax.loadLogin();
 	}
@@ -11780,35 +11714,35 @@ var websocket = (function ($) {
 	/**
 	 * Returns true if app is started the first time
 	 */
-	function firstStart(){
+	function firstStart() {
 		return !localStorage.userHash;
 	}
 
+
 	/**
-	 * Returns the server Response with all Nations
+	 * Creates a user with a certain hash and country
 	 */
-	function getCountries() {
+	function createUser(hash, country) {
 		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'countries'}));
+
+			var jsonRequest = {
+				"get": "login",
+				"user_hash": hash,
+				"country": country
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+
 			con.getInstance().onmessage = function (msg) {
-				console.log(msg);
 
+				var response = JSON.parse(msg.data);
 
-				/*var recipe_list = $("#select_recipe");
-				 var string = "";
-
-				 var response = JSON.parse(msg.data);
-				 var recipes = response.recipes;
-
-				 if (recipes.length) {
-				 for (var i = 0; i < recipes.length; i++) {
-				 string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
-				 }
-				 } else {
-				 string = "<option>No recipes so far.</option>";
-				 }
-
-				 recipe_list.append(string);*/
+				if (response.response === "success") {
+					// Redirect to homescreen
+					ajax.loadHome();
+				} else {
+					ajax.loadError();
+				}
 			};
 		}
 	}
@@ -11818,8 +11752,8 @@ var websocket = (function ($) {
 		init: function () {
 			init();
 		},
-		getCountries: function () {
-			getCountries();
+		createUser: function (hash, country) {
+			return createUser(hash, country);
 		}
 	};
 

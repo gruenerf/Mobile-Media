@@ -54,9 +54,9 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
-					if(firstStart()){
+					if (firstStart()) {
 						loadLogin();
-					}else{
+					} else {
 						loadHomeScreen();
 					}
 				} else if (times === 30) {
@@ -77,8 +77,8 @@ var websocket = (function ($) {
 	}
 
 	/**
-	* Removes loading screen and shows content
-	*/
+	 * Removes loading screen and shows content
+	 */
 	function loadHomeScreen() {
 		$("#loading").hide();
 		ajax.loadHome();
@@ -87,7 +87,7 @@ var websocket = (function ($) {
 	/**
 	 * Removes loading screen and shows Login
 	 */
-	function loadLogin(){
+	function loadLogin() {
 		$("#loading").hide();
 		ajax.loadLogin();
 	}
@@ -95,35 +95,35 @@ var websocket = (function ($) {
 	/**
 	 * Returns true if app is started the first time
 	 */
-	function firstStart(){
+	function firstStart() {
 		return !localStorage.userHash;
 	}
 
+
 	/**
-	 * Returns the server Response with all Nations
+	 * Creates a user with a certain hash and country
 	 */
-	function getCountries() {
+	function createUser(hash, country) {
 		if (con.getInstance().readyState === 1) {
-			con.getInstance().send(JSON.stringify({'get': 'countries'}));
+
+			var jsonRequest = {
+				"get": "login",
+				"user_hash": hash,
+				"country": country
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+
 			con.getInstance().onmessage = function (msg) {
-				console.log(msg);
 
+				var response = JSON.parse(msg.data);
 
-				/*var recipe_list = $("#select_recipe");
-				 var string = "";
-
-				 var response = JSON.parse(msg.data);
-				 var recipes = response.recipes;
-
-				 if (recipes.length) {
-				 for (var i = 0; i < recipes.length; i++) {
-				 string += "<option value='" + recipes[i].name + "' >" + recipes[i].name + "</option>";
-				 }
-				 } else {
-				 string = "<option>No recipes so far.</option>";
-				 }
-
-				 recipe_list.append(string);*/
+				if (response.response === "success") {
+					// Redirect to homescreen
+					ajax.loadHome();
+				} else {
+					ajax.loadError();
+				}
 			};
 		}
 	}
@@ -133,8 +133,8 @@ var websocket = (function ($) {
 		init: function () {
 			init();
 		},
-		getCountries: function () {
-			getCountries();
+		createUser: function (hash, country) {
+			return createUser(hash, country);
 		}
 	};
 

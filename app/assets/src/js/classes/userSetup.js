@@ -49,17 +49,21 @@ var userSetup = (function ($) {
 
 					// Store country id and name in localstorage
 					var country = JSON.parse(countryval.replace(/'/g, "\""));
+
+					var countryName = country.name;
 					localStorage.countryId = country.id;
-					localStorage.countryName = country.name;
+					localStorage.countryName = countryName;
+
 
 					// Generate Userhash
-					localStorage.userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+					var userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+					localStorage.userHash = userHash;
 
-					// Redirect to homescreen
-					ajax.loadHome();
+					websocket.createUser(userHash, countryName);
 				}
 				else {
-					$("#login_error").append('You have to select a country.');
+					var error = $("#login_error");
+					error.show().empty().append('You have to select a country.');
 				}
 			});
 		});

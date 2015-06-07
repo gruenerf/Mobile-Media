@@ -50,8 +50,10 @@ var ajax = (function ($) {
 	function loadError() {
 		var content = $("#content");
 		var body = $("body");
+		var loading = $("#loading");
 
 		content.load("view/error.html", function () {
+			loading.hide();
 			content.show();
 		});
 	}
@@ -63,11 +65,26 @@ var ajax = (function ($) {
 		var content = $("#content");
 		var container = $("#container");
 		var login = $("#login");
+		var loading = $("#loading");
 
 		content.load("view/home.html", function () {
 			content.attr('class', 'content home');
 			sidebar.close();
 			login.hide();
+			loading.hide();
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+			$("#country_name").empty().append(localStorage.countryName);
+
+			// Get medals
+			var medals = leaderboard.getMedals();
+
+			$("#medal_gold").empty().append(medals.gold);
+			$("#medal_silver").empty().append(medals.silver);
+			$("#medal_bronze").empty().append(medals.bronze);
+
+			// Show content
 			content.show();
 			container.show();
 		});
@@ -81,6 +98,7 @@ var ajax = (function ($) {
 
 		content.load("view/leaderboard.html", function () {
 			content.attr('class', 'content leaderboard');
+			leaderboard.getLeaderboard();
 			sidebar.close();
 		});
 	}

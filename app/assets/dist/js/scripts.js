@@ -11317,8 +11317,10 @@ var ajax = (function ($) {
 	function loadError() {
 		var content = $("#content");
 		var body = $("body");
+		var loading = $("#loading");
 
 		content.load("view/error.html", function () {
+			loading.hide();
 			content.show();
 		});
 	}
@@ -11330,11 +11332,26 @@ var ajax = (function ($) {
 		var content = $("#content");
 		var container = $("#container");
 		var login = $("#login");
+		var loading = $("#loading");
 
 		content.load("view/home.html", function () {
 			content.attr('class', 'content home');
 			sidebar.close();
 			login.hide();
+			loading.hide();
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+			$("#country_name").empty().append(localStorage.countryName);
+
+			// Get medals
+			var medals = leaderboard.getMedals();
+
+			$("#medal_gold").empty().append(medals.gold);
+			$("#medal_silver").empty().append(medals.silver);
+			$("#medal_bronze").empty().append(medals.bronze);
+
+			// Show content
 			content.show();
 			container.show();
 		});
@@ -11348,6 +11365,7 @@ var ajax = (function ($) {
 
 		content.load("view/leaderboard.html", function () {
 			content.attr('class', 'content leaderboard');
+			leaderboard.getLeaderboard();
 			sidebar.close();
 		});
 	}
@@ -11451,6 +11469,100 @@ var cordova = (function ($) {
 	};
 
 })(jQuery);;/**
+ * This file handels all functions related to the leaderboard
+ *
+ * @class leaderboard
+ * @static
+ * @author Ferdinand Grüner
+ * @version  1.0
+ * @return {Object} init-Function
+ */
+
+var leaderboard = (function ($) {
+
+
+	function getLeaderboard() {
+
+		var leaderboard = $("#leaderboard");
+		// Stringbuffer for inserted html
+		var string = "";
+
+		if (localStorage.leaderboard_json) {
+
+			// Checks if own country is in leaderboard
+			var check = false;
+			var counter = 1;
+
+			var leaderboardJson = JSON.parse(localStorage.leaderboard_json);
+			$.each(leaderboardJson, function (i, v) {
+				if (v.country === localStorage.countryId) {
+					check = true;
+				}
+
+				var countries = JSON.parse(localStorage.countries_json);
+				$.each(countries, function (index, val) {
+					if (val.id === v.country) {
+						string += "<tr>" +
+						"<td>" + counter + "</td>" +
+						"<td>" + val.name + "</td>" +
+						"<td>" + v.gold + "</td>" +
+						"<td>" + v.silver + "</td>" +
+						"<td>" + v.bronze + "</td>" +
+						"</tr>";
+
+						counter++;
+						return false;
+					}
+				});
+			});
+
+			if (!check) {
+				string += "<tr>" +
+				"<td>" + counter + "</td>" +
+				"<td>" + localStorage.countryName + "</td>" +
+				"<td>0</td>" +
+				"<td>0</td>" +
+				"<td>0</td>" +
+				"</tr>";
+			}
+
+			leaderboard.append(string);
+		}
+	}
+
+	/**
+	 * Returns the amount of medals of the selected country
+	 *
+	 * @returns {{gold: string, silver: string, bronze: string}}
+	 */
+	function getMedals() {
+
+		var response = {"gold": "0", "silver": "0", "bronze": "0"};
+
+		if (localStorage.leaderboard_json) {
+			var leaderboard = JSON.parse(localStorage.leaderboard_json);
+
+			$.each(leaderboard, function (i, v) {
+				if (v.country === localStorage.countryId) {
+					response = {"gold": v.gold, "silver": v.silver, "bronze": v.bronze};
+				}
+			});
+		}
+
+		return response;
+	}
+
+	return {
+		getLeaderboard: function () {
+			getLeaderboard();
+		},
+		getMedals: function () {
+			return getMedals();
+		}
+	};
+
+})(jQuery);
+;/**
  * This file handels the sidebar menu
  *
  * @class sidebar
@@ -11547,52 +11659,49 @@ var userSetup = (function ($) {
 	 */
 	function loadCountries() {
 
-		// Read countries out of json
-		$.getJSON('assets/dist/json/countries.json', function (data) {
-			var string = "";
-			var countries = data.countries;
+		// Read countries out of localStorage
+		var string = "";
+		var countries = JSON.parse(localStorage.countries_json);
 
-			// If countries exist
-			if (countries.length) {
-				for (var i = 0; i < countries.length; i++) {
-					string += "<option value=\"{'id':'" + countries[i].id + "','name':'" + countries[i].name + "'}\">" + countries[i].name + "</option>";
-				}
-			} else {
-				string = "<option>No countries so far.</option>";
+		console.log(countries);
+
+		// If countries exist
+		$.each(countries, function(i,v) {
+			string += "<option value=\"{'id':'" + v.id + "','name':'" + v.name + "'}\">" + v.name + "</option>";
+		});
+
+		// Append the options to the select box
+		$("#countries").append(string);
+
+		// If country gets submitted
+		$("#continue_button").on("click", function () {
+
+			// Get selected country
+			var countryval = $('#countries').val();
+
+			if (countryval !== null) {
+
+				// Store country id and name in localstorage
+				var country = JSON.parse(countryval.replace(/'/g, "\""));
+
+				var countryName = country.name;
+				localStorage.countryId = country.id;
+				localStorage.countryName = countryName;
+
+
+				// Generate Userhash
+				var userHash = randomString(32, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+				localStorage.userHash = userHash;
+
+				websocket.createUser(userHash, countryName);
 			}
-
-			// Append the options to the select box
-			$("#countries").append(string);
-
-			// If country gets submitted
-			$("#continue_button").on("click", function () {
-
-				// Get selected country
-				var countryval = $('#countries').val();
-
-				if (countryval !== null) {
-
-					// Store country id and name in localstorage
-					var country = JSON.parse(countryval.replace(/'/g, "\""));
-
-					var countryName = country.name;
-					localStorage.countryId = country.id;
-					localStorage.countryName = countryName;
-
-
-					// Generate Userhash
-					var userHash = randomString(40, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-					localStorage.userHash = userHash;
-
-					websocket.createUser(userHash, countryName);
-				}
-				else {
-					var error = $("#login_error");
-					error.show().empty().append('You have to select a country.');
-				}
-			});
+			else {
+				var error = $("#login_error");
+				error.show().empty().append('You have to select a country.');
+			}
 		});
 	}
+
 
 	/**
 	 * Generate a random String
@@ -11673,10 +11782,11 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
+
 					if (firstStart()) {
 						loadLogin();
 					} else {
-						loadHomeScreen();
+						start();
 					}
 				} else if (times === 30) {
 					throwConnectionError();
@@ -11708,6 +11818,9 @@ var websocket = (function ($) {
 	 */
 	function loadLogin() {
 		$("#loading").hide();
+		$.getJSON('assets/dist/json/countries.json', function (data) {
+			localStorage.countries_json = JSON.stringify(data.countries);
+		});
 		ajax.loadLogin();
 	}
 
@@ -11717,7 +11830,6 @@ var websocket = (function ($) {
 	function firstStart() {
 		return !localStorage.userHash;
 	}
-
 
 	/**
 	 * Creates a user with a certain hash and country
@@ -11739,7 +11851,89 @@ var websocket = (function ($) {
 
 				if (response.response === "success") {
 					// Redirect to homescreen
-					ajax.loadHome();
+					start();
+				} else {
+					ajax.loadError();
+				}
+			};
+		}
+	}
+
+	// Start function to get all necessary data from the servers
+	function start() {
+		$("#login").hide();
+		$("#loading").show();
+
+		if (con.getInstance().readyState === 1) {
+
+			// Get tokens
+			var jsonRequest = {
+				"get": "tokens",
+				"user_hash": localStorage.userHash
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+			con.getInstance().onmessage = function (msg) {
+
+				var response = JSON.parse(msg.data);
+
+				localStorage.tokens = response.data[0].tokens;
+
+				if (response.response === "success") {
+
+					// Get Bets
+					var jsonRequest = {
+						"get": "bets",
+						"user_hash": localStorage.userHash
+					};
+
+					con.getInstance().send(JSON.stringify(jsonRequest));
+					con.getInstance().onmessage = function (msg) {
+
+						var response = JSON.parse(msg.data);
+						localStorage.bets_json = JSON.stringify(response.data);
+						if (response.response === "success") {
+
+							// Get Vouchers
+							var jsonRequest = {
+								"get": "vouchers",
+								"user_hash": localStorage.userHash
+							};
+
+							con.getInstance().send(JSON.stringify(jsonRequest));
+							con.getInstance().onmessage = function (msg) {
+
+								var response = JSON.parse(msg.data);
+								localStorage.vouchers_json = JSON.stringify(response.data);
+								if (response.response === "success") {
+
+									// Get Leaderboard
+									var jsonRequest = {
+										"get": "leaderboard"
+									};
+
+									con.getInstance().send(JSON.stringify(jsonRequest));
+									con.getInstance().onmessage = function (msg) {
+
+										var response = JSON.parse(msg.data);
+										localStorage.leaderboard_json = JSON.stringify(response.data);
+										if (response.response === "success") {
+
+											// If everything is loaded go to the homescreen
+											loadHomeScreen();
+
+										} else {
+											ajax.loadError();
+										}
+									};
+								} else {
+									ajax.loadError();
+								}
+							};
+						} else {
+							ajax.loadError();
+						}
+					};
 				} else {
 					ajax.loadError();
 				}
@@ -11754,6 +11948,9 @@ var websocket = (function ($) {
 		},
 		createUser: function (hash, country) {
 			return createUser(hash, country);
+		},
+		start: function () {
+			start();
 		}
 	};
 

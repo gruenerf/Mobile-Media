@@ -10,10 +10,11 @@
 </head>
 <body>
 <div id="login"></div>
+<div class="loading" id="loading"></div>
 <div class="container" id="container">
 	<div id="sidebar">
 		<ul>
-			<li class="sidebar_item" id="link_home">Home</li>
+			<li class="sidebar_item active" id="link_home">Home</li>
 			<li class="sidebar_item" id="link_leaderboard">Leaderboard</li>
 			<li class="sidebar_item" id="link_bets">Bets</li>
 			<li class="sidebar_item" id="link_vouchers">Vouchers</li>
@@ -29,11 +30,10 @@
 			<div class="tokens">
 				<img src="assets/dist/img/coins.png">
 
-				<div class="number">500</div>
+				<div class="number" id="tokens"></div>
 			</div>
 		</header>
 
-		<div class="loading" id="loading"></div>
 		<div class="content swipe-area" id="content"></div>
 	</div>
 

@@ -54,10 +54,11 @@ var websocket = (function ($) {
 		setTimeout(
 			function () {
 				if (socket.readyState === 1) {
+
 					if (firstStart()) {
 						loadLogin();
 					} else {
-						loadHomeScreen();
+						start();
 					}
 				} else if (times === 30) {
 					throwConnectionError();
@@ -89,6 +90,9 @@ var websocket = (function ($) {
 	 */
 	function loadLogin() {
 		$("#loading").hide();
+		$.getJSON('assets/dist/json/countries.json', function (data) {
+			localStorage.countries_json = JSON.stringify(data.countries);
+		});
 		ajax.loadLogin();
 	}
 
@@ -98,7 +102,6 @@ var websocket = (function ($) {
 	function firstStart() {
 		return !localStorage.userHash;
 	}
-
 
 	/**
 	 * Creates a user with a certain hash and country
@@ -120,7 +123,89 @@ var websocket = (function ($) {
 
 				if (response.response === "success") {
 					// Redirect to homescreen
-					ajax.loadHome();
+					start();
+				} else {
+					ajax.loadError();
+				}
+			};
+		}
+	}
+
+	// Start function to get all necessary data from the servers
+	function start() {
+		$("#login").hide();
+		$("#loading").show();
+
+		if (con.getInstance().readyState === 1) {
+
+			// Get tokens
+			var jsonRequest = {
+				"get": "tokens",
+				"user_hash": localStorage.userHash
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+			con.getInstance().onmessage = function (msg) {
+
+				var response = JSON.parse(msg.data);
+
+				localStorage.tokens = response.data[0].tokens;
+
+				if (response.response === "success") {
+
+					// Get Bets
+					var jsonRequest = {
+						"get": "bets",
+						"user_hash": localStorage.userHash
+					};
+
+					con.getInstance().send(JSON.stringify(jsonRequest));
+					con.getInstance().onmessage = function (msg) {
+
+						var response = JSON.parse(msg.data);
+						localStorage.bets_json = JSON.stringify(response.data);
+						if (response.response === "success") {
+
+							// Get Vouchers
+							var jsonRequest = {
+								"get": "vouchers",
+								"user_hash": localStorage.userHash
+							};
+
+							con.getInstance().send(JSON.stringify(jsonRequest));
+							con.getInstance().onmessage = function (msg) {
+
+								var response = JSON.parse(msg.data);
+								localStorage.vouchers_json = JSON.stringify(response.data);
+								if (response.response === "success") {
+
+									// Get Leaderboard
+									var jsonRequest = {
+										"get": "leaderboard"
+									};
+
+									con.getInstance().send(JSON.stringify(jsonRequest));
+									con.getInstance().onmessage = function (msg) {
+
+										var response = JSON.parse(msg.data);
+										localStorage.leaderboard_json = JSON.stringify(response.data);
+										if (response.response === "success") {
+
+											// If everything is loaded go to the homescreen
+											loadHomeScreen();
+
+										} else {
+											ajax.loadError();
+										}
+									};
+								} else {
+									ajax.loadError();
+								}
+							};
+						} else {
+							ajax.loadError();
+						}
+					};
 				} else {
 					ajax.loadError();
 				}
@@ -135,6 +220,9 @@ var websocket = (function ($) {
 		},
 		createUser: function (hash, country) {
 			return createUser(hash, country);
+		},
+		start: function () {
+			start();
 		}
 	};
 

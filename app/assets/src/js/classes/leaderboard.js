@@ -10,10 +10,13 @@
 
 var leaderboard = (function ($) {
 
-
+	/**
+	 * Initializes the leaderboard
+	 */
 	function getLeaderboard() {
 
 		var leaderboard = $("#leaderboard");
+
 		// Stringbuffer for inserted html
 		var string = "";
 

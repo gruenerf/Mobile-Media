@@ -24,22 +24,32 @@ var ajax = (function ($) {
 		var body = $("body");
 
 		body.on('click', "#link_home", function () {
+			$(".sidebar_item").removeClass('active');
+			$("#link_home").addClass("active");
 			loadHome();
 		});
 
 		body.on('click', "#link_leaderboard", function () {
+			$(".sidebar_item").removeClass('active');
+			$("#link_leaderboard").addClass("active");
 			loadLeaderboard();
 		});
 
 		body.on('click', "#link_bets", function () {
+			$(".sidebar_item").removeClass('active');
+			$("#link_bets").addClass("active");
 			loadBets();
 		});
 
 		body.on('click', "#link_vouchers", function () {
+			$(".sidebar_item").removeClass('active');
+			$("#link_vouchers").addClass("active");
 			loadVouchers();
 		});
 
 		body.on('click', "#link_retailers", function () {
+			$(".sidebar_item").removeClass('active');
+			$("#link_retailers").addClass("active");
 			loadRetailers();
 		});
 	}
@@ -111,7 +121,23 @@ var ajax = (function ($) {
 
 		content.load("view/bets.html", function () {
 			content.attr('class', 'content bets');
+			bets.getEvents();
 			sidebar.close();
+		});
+	}
+
+	/**
+	 * Loads setBet
+	 */
+	function loadSetBet(eventName, eventId) {
+		var content = $("#content");
+
+		content.load("view/setBet.html", function () {
+			content.attr('class', 'content setBet');
+			$("#eventName").empty().append(eventName);
+			$("#continue_button").data("id", eventId);
+
+			userSetup.loadCountries();
 		});
 	}
 
@@ -146,7 +172,7 @@ var ajax = (function ($) {
 		var login = $("#login");
 
 		login.load("view/login.html", function () {
-			userSetup.loadCountries();
+			userSetup.setupLogin();
 		});
 	}
 
@@ -163,6 +189,9 @@ var ajax = (function ($) {
 		},
 		loadLogin: function () {
 			loadLogin();
+		},
+		loadSetBet: function(eventName, eventId) {
+			loadSetBet(eventName, eventId);
 		}
 	};
 

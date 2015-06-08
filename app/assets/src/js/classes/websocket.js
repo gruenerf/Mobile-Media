@@ -191,8 +191,25 @@ var websocket = (function ($) {
 										localStorage.leaderboard_json = JSON.stringify(response.data);
 										if (response.response === "success") {
 
-											// If everything is loaded go to the homescreen
-											loadHomeScreen();
+											// Get Leaderboard
+											var jsonRequest = {
+												"get": "events"
+											};
+
+											con.getInstance().send(JSON.stringify(jsonRequest));
+											con.getInstance().onmessage = function (msg) {
+
+												var response = JSON.parse(msg.data);
+												localStorage.events_json = JSON.stringify(response.data);
+												if (response.response === "success") {
+
+													// If everything is loaded go to the homescreen
+													loadHomeScreen();
+
+												} else {
+													ajax.loadError();
+												}
+											};
 
 										} else {
 											ajax.loadError();

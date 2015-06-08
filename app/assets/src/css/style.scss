@@ -450,8 +450,8 @@ html {
 					}
 				}
 
-				.leaderboard {
-					width: 80%;
+				.leaderboard, .events {
+					width: 100%;
 					margin: 0 auto;
 					border-radius: 5px;
 					border: 1px solid #ffffff;
@@ -464,11 +464,13 @@ html {
 							line-height: 24px;
 							vertical-align: middle;
 							padding: 3px 10px 5px;
+							max-width: 160px;
+							word-wrap: break-word;
 							background: rgba(255, 255, 255, .1);
 
 							img {
 								vertical-align: middle;
-								height: 24px;
+								height: 40px;
 							}
 						}
 

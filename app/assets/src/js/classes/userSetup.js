@@ -20,21 +20,7 @@ var userSetup = (function ($) {
 	/**
 	 * Loads countries to setup login screen
 	 */
-	function loadCountries() {
-
-		// Read countries out of localStorage
-		var string = "";
-		var countries = JSON.parse(localStorage.countries_json);
-
-		console.log(countries);
-
-		// If countries exist
-		$.each(countries, function(i,v) {
-			string += "<option value=\"{'id':'" + v.id + "','name':'" + v.name + "'}\">" + v.name + "</option>";
-		});
-
-		// Append the options to the select box
-		$("#countries").append(string);
+	function setupLogin() {
 
 		// If country gets submitted
 		$("#continue_button").on("click", function () {
@@ -65,6 +51,22 @@ var userSetup = (function ($) {
 		});
 	}
 
+	function loadCountries() {
+		// Read countries out of localStorage
+		var string = "";
+		var countries = JSON.parse(localStorage.countries_json);
+
+		console.log(countries);
+
+		// If countries exist
+		$.each(countries, function (i, v) {
+			string += "<option value=\"{'id':'" + v.id + "','name':'" + v.name + "'}\">" + v.name + "</option>";
+		});
+
+		// Append the options to the select box
+		$("#countries").append(string);
+	}
+
 
 	/**
 	 * Generate a random String
@@ -84,9 +86,14 @@ var userSetup = (function ($) {
 		init: function () {
 			init();
 		},
+		setupLogin: function () {
+			loadCountries();
+			setupLogin();
+		},
 		loadCountries: function () {
 			loadCountries();
 		}
+
 	};
 
 })(jQuery);

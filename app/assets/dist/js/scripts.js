@@ -11281,7 +11281,11 @@ var ajax = (function ($) {
 	 * Initializing function
 	 */
 	function init() {
+		var body = $("body");
 
+		body.on("click", "#cancel", function () {
+			document.getElementById("dialog").close();
+		});
 	}
 
 	/**
@@ -11314,10 +11318,10 @@ var ajax = (function ($) {
 			loadVouchers();
 		});
 
-		body.on('click', "#link_retailers", function () {
+		body.on('click', "#link_manual", function () {
 			$(".sidebar_item").removeClass('active');
-			$("#link_retailers").addClass("active");
-			loadRetailers();
+			$("#link_manual").addClass("active");
+			loadManual();
 		});
 	}
 
@@ -11364,6 +11368,21 @@ var ajax = (function ($) {
 			// Show content
 			content.show();
 			container.show();
+
+			// Show notification about earned tokens
+			if (localStorage.tokenDiff) {
+				if (parseInt(localStorage.tokenDiff) > 0) {
+					var dialog = $("#dialog");
+
+					var string = "<div class='question'>You earned " + localStorage.tokenDiff + " Tokens.</div>" +
+						"<div class='buttonarea'><button id='cancel'>Close</button></div>";
+
+
+					dialog.empty().append(string);
+					document.getElementById("dialog").showModal();
+					localStorage.removeItem("tokenDiff");
+				}
+			}
 		});
 	}
 
@@ -11383,12 +11402,20 @@ var ajax = (function ($) {
 	/**
 	 * Loads Bets
 	 */
-	function loadBets() {
+	function loadBets(betSet) {
 		var content = $("#content");
 
 		content.load("view/bets.html", function () {
 			content.attr('class', 'content bets');
 			bets.getEvents();
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+
+			if (betSet !== undefined) {
+				$("#notification").append('Bet was successfully set.').show();
+			}
+			content.show();
 			sidebar.close();
 		});
 	}
@@ -11401,21 +11428,28 @@ var ajax = (function ($) {
 
 		content.load("view/setBet.html", function () {
 			content.attr('class', 'content setBet');
+			userSetup.loadCountries("#bet_countries");
 			$("#eventName").empty().append(eventName);
-			$("#continue_button").data("id", eventId);
-
-			userSetup.loadCountries();
+			$("#bet_button").attr("data-id", eventId);
 		});
 	}
 
 	/**
 	 * Loads Vouchers
 	 */
-	function loadVouchers() {
+	function loadVouchers(boughtVoucher) {
 		var content = $("#content");
 
 		content.load("view/vouchers.html", function () {
 			content.attr('class', 'content vouchers');
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+
+			if (boughtVoucher !== undefined) {
+				("#notification").append('voucher was successfully bought.').show();
+			}
+			vouchers.init();
 			sidebar.close();
 		});
 	}
@@ -11423,11 +11457,11 @@ var ajax = (function ($) {
 	/**
 	 * Loads Retailers
 	 */
-	function loadRetailers() {
+	function loadManual() {
 		var content = $("#content");
 
-		content.load("view/retailers.html", function () {
-			content.attr('class', 'content retailers');
+		content.load("view/manual.html", function () {
+			content.attr('class', 'content manual');
 			sidebar.close();
 		});
 	}
@@ -11457,7 +11491,13 @@ var ajax = (function ($) {
 		loadLogin: function () {
 			loadLogin();
 		},
-		loadSetBet: function(eventName, eventId) {
+		loadBets: function (betSet) {
+			loadBets(betSet);
+		},
+		loadVouchers: function (boughtVoucher) {
+			loadBets(boughtVoucher);
+		},
+		loadSetBet: function (eventName, eventId) {
 			loadSetBet(eventName, eventId);
 		}
 	};
@@ -11475,6 +11515,30 @@ var ajax = (function ($) {
 var bets = (function ($) {
 
 	/**
+	 * Function that defines the difference between two dates
+	 * @param datepart
+	 * @param fromDate
+	 * @param toDate
+	 * @returns {number}
+	 */
+	function dateDiff(datepart, fromDate, toDate) {
+		datepart = datepart.toLowerCase();
+
+		//Difference in milliseconds
+		var diff = toDate - fromDate;
+
+		var divideBy = {
+			w: 604800000,
+			d: 86400000,
+			h: 3600000,
+			n: 60000,
+			s: 1000
+		};
+
+		return Math.floor(diff / divideBy[datepart]) + 1;
+	}
+
+	/**
 	 * Initializing function
 	 */
 	function init() {
@@ -11483,42 +11547,36 @@ var bets = (function ($) {
 		body.on('click', ".bet", function () {
 			ajax.loadSetBet($(this).data("name"), $(this).data("id"));
 		});
-	}
 
+		body.on('click', '#bet_button', function () {
 
-	function setBet(){
-		var body = $("body");
-
-		body.on('click', '#bet_button', function(){
 			// Get selected country
-			var countryVal = $('#countries').val();
-			var tokenVal = $('#tokens').val();
+			var eventId = $(this).data("id");
+			var countryVal = $('#bet_countries').val();
+			var tokenVal = $('#set_tokens').val();
 
-			if (countryVal !== null) {
+			// Empty error
+			var error = $('#bet_error');
+			error.empty();
 
+			if (countryVal !== null && tokenVal !== "") {
 				// Store country id and name in localstorage
-				var country = JSON.parse(countryVal.replace(/'/g, "\""));
-
+				var country = JSON.parse(countryVal);
 				var countryId = country.id;
-			}else {
-				var error = $("#login_error");
-				error.show().empty().append('You have to select a country.');
+
+				if (tokenVal <= localStorage.tokens) {
+					websocket.setBet(eventId, countryId, tokenVal);
+				} else {
+					error.show().append('You can´t bet more tokens than you have.');
+				}
+			} else {
+				error.show().append('You have to fill out both fields.');
 			}
 		});
 	}
 
 	/**
-	 * Todo
-	 *
-	 * Show all events
-	 * Put betting option ext to them
-	 * if clicked how much do you want to bet / country
-	 * bet
-	 *
-	 * mark the betted ones
-	 * mark the won ones and the lost ones
-	 *
-	 * make description for bets
+	 * Reutns all events
 	 */
 	function getEvents() {
 		var events = $("#events");
@@ -11531,18 +11589,41 @@ var bets = (function ($) {
 			var eventsJson = JSON.parse(localStorage.events_json);
 			$.each(eventsJson, function (i, v) {
 
-				string += "<tr>" +
-				"<td>" + v.eventName + "</td>" +
-				"<td>" + $.formatDateTime('dd.mm.y gg:ii:ss', new Date(v.date)) + "</td>" +
-				"<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
-				"' data-id='" + v.event_id + "' class='bet'></td>" +
-				"</tr>";
+				// Only if dates are in the future
+				if(dateDiff("s", new Date(), new Date(v.date)) > 0){
+					//Check if bet already exists
+					var betsJson = JSON.parse(localStorage.bets_json);
+					var exists = false;
 
+					$.each(betsJson, function (index, val) {
+						if (val.event_id === v.event_id) {
+							exists = true;
+							return true;
+						}
+					});
+
+					if (exists) {
+						string += "<tr class='exists'>";
+					}
+					else {
+						string += "<tr>";
+					}
+					string += "<td>" + v.eventName + "</td>" +
+					"<td>" + $.formatDateTime('dd.mm.y gg:ii:ss', new Date(v.date)) + "</td>";
+
+					if (!exists) {
+						string += "<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
+						"' data-id='" + v.event_id + "' class='bet'></td>";
+					} else {
+						string += "<td>X</td>";
+					}
+
+					string += "</tr>";
+				}
 			});
 
 			events.append(string);
 		}
-
 	}
 
 	return {
@@ -11572,13 +11653,12 @@ var cordova = (function ($) {
 
 		var content = $('#content');
 
-		// TODO anpassen
 		if (content.hasClass('home')) {
 			navigator.app.exitApp();
-		} else if (content.hasClass('addNewRecipe')) {
-			ajax.loadRecipes();
+		} else if (content.hasClass('setBet')) {
+			ajax.loadBets();
 		} else {
-			//ajax.loadHome();
+			ajax.loadHome();
 		}
 	}
 
@@ -12049,7 +12129,7 @@ var userSetup = (function ($) {
 			if (countryval !== null) {
 
 				// Store country id and name in localstorage
-				var country = JSON.parse(countryval.replace(/'/g, "\""));
+				var country = JSON.parse(countryval);
 
 				var countryName = country.name;
 				localStorage.countryId = country.id;
@@ -12069,20 +12149,19 @@ var userSetup = (function ($) {
 		});
 	}
 
-	function loadCountries() {
+	function loadCountries(selector) {
+
 		// Read countries out of localStorage
 		var string = "";
 		var countries = JSON.parse(localStorage.countries_json);
 
-		console.log(countries);
-
 		// If countries exist
 		$.each(countries, function (i, v) {
-			string += "<option value=\"{'id':'" + v.id + "','name':'" + v.name + "'}\">" + v.name + "</option>";
+			string += "<option value=\'{\"id\":\"" + v.id + "\",\"name\":\"" + v.name + "\"}\'>" + v.name + "</option>";
 		});
 
 		// Append the options to the select box
-		$("#countries").append(string);
+		$(selector).append(string);
 	}
 
 
@@ -12105,13 +12184,93 @@ var userSetup = (function ($) {
 			init();
 		},
 		setupLogin: function () {
-			loadCountries();
+			loadCountries("#countries");
 			setupLogin();
 		},
-		loadCountries: function () {
-			loadCountries();
+		loadCountries: function (selector) {
+			loadCountries(selector);
 		}
 
+	};
+
+})(jQuery);;/**
+ * This file handels vouchers
+ *
+ * @class vouchers
+ * @static
+ * @author Ferdinand Grüner
+ * @version  1.0
+ * @return {Object} init-Function
+ */
+
+var vouchers = (function ($) {
+
+	/**
+	 * Initializing function
+	 */
+	function init() {
+		var body = $("body");
+
+		if (localStorage.vouchers_json) {
+			var vouchersJson = JSON.parse(localStorage.vouchers_json);
+			$.each(vouchersJson, function (i, v) {
+				if (v.voucher_id === 1) {
+					$("#ten .wrapper").addClass("unlocked");
+				}
+				if (v.voucher_id === 2) {
+					$("#twenty .wrapper").addClass("unlocked");
+				}
+				if (v.voucher_id === 3) {
+					$("#thirty .wrapper").addClass("unlocked");
+				}
+				if (v.voucher_id === 4) {
+					$("#forty .wrapper").addClass("unlocked");
+				}
+				if (v.voucher_id === 5) {
+					$("#fifty .wrapper").addClass("unlocked");
+				}
+			});
+		}
+
+		body.on("click", ".voucher", function () {
+			var dialog = $("#dialog");
+
+			var string = "";
+
+			if ($(this).data("price") < localStorage.tokens) {
+				string += "<div class='question'>Do you want to purchase the voucher for the price of " +
+							$(this).data("price") + " Tokens?</div>" +
+							"<div class='buttonarea'><button id='cancel'>Cancel</button>" +
+							"<button data-id=" + $(this).data("id") + " data-price=" + $(this).data("price") +
+							" id='buy_voucher'>Yes</button></div>";
+			} else {
+				string += "<div class='question'>You don´t have enough tokens to make that purchase!</div>" +
+							"<div class='buttonarea'><button id='cancel'>Back</button></div>";
+			}
+
+			dialog.empty().append(string);
+			document.getElementById("dialog").showModal();
+		});
+
+		body.on("click", "#buy_voucher", function () {
+			websocket.buyVoucher($(this).data("id"));
+			document.getElementById("dialog").close();
+		});
+	}
+
+	/**
+	 * Generates a voucher Hash which can be used as a validation method for Vouchers
+	 * @param amount
+	 * @returns {string}
+	 */
+	function generateVoucherHash(amount) {
+		return localStorage.userHash.substr(1, 4) + amount + localStorage.userHash.substr(5, 4);
+	}
+
+	return {
+		init: function () {
+			init();
+		}
 	};
 
 })(jQuery);;/**
@@ -12213,6 +12372,22 @@ var websocket = (function ($) {
 	}
 
 	/**
+	 * Removes loading screen and shows Bets
+	 */
+	function loadBets() {
+		$("#loading").hide();
+		ajax.loadBets(true);
+	}
+
+	/**
+	 * Removes loading screen and shows Bets
+	 */
+	function loadVouchers() {
+		$("#loading").hide();
+		ajax.loadVouchers(true);
+	}
+
+	/**
 	 * Returns true if app is started the first time
 	 */
 	function firstStart() {
@@ -12254,24 +12429,23 @@ var websocket = (function ($) {
 
 		if (con.getInstance().readyState === 1) {
 
-			// Get tokens
+			// Send Request
 			var jsonRequest = {
-				"get": "tokens",
-				"user_hash": localStorage.userHash
+				"get": "login",
+				"user_hash": localStorage.userHash,
+				"country": localStorage.countryName
 			};
 
 			con.getInstance().send(JSON.stringify(jsonRequest));
+
 			con.getInstance().onmessage = function (msg) {
 
 				var response = JSON.parse(msg.data);
 
-				localStorage.tokens = response.data[0].tokens;
-
 				if (response.response === "success") {
-
-					// Get Bets
+					// Get tokens
 					var jsonRequest = {
-						"get": "bets",
+						"get": "tokens",
 						"user_hash": localStorage.userHash
 					};
 
@@ -12279,12 +12453,15 @@ var websocket = (function ($) {
 					con.getInstance().onmessage = function (msg) {
 
 						var response = JSON.parse(msg.data);
-						localStorage.bets_json = JSON.stringify(response.data);
+
+						localStorage.tokenDiff = localStorage.tokens-response.data[0].tokens;
+						localStorage.tokens = response.data[0].tokens;
+
 						if (response.response === "success") {
 
-							// Get Vouchers
+							// Get Bets
 							var jsonRequest = {
-								"get": "vouchers",
+								"get": "bets",
 								"user_hash": localStorage.userHash
 							};
 
@@ -12292,41 +12469,57 @@ var websocket = (function ($) {
 							con.getInstance().onmessage = function (msg) {
 
 								var response = JSON.parse(msg.data);
-								localStorage.vouchers_json = JSON.stringify(response.data);
+								localStorage.bets_json = JSON.stringify(response.data);
 								if (response.response === "success") {
 
-									// Get Leaderboard
+									// Get Vouchers
 									var jsonRequest = {
-										"get": "leaderboard"
+										"get": "vouchers",
+										"user_hash": localStorage.userHash
 									};
 
 									con.getInstance().send(JSON.stringify(jsonRequest));
 									con.getInstance().onmessage = function (msg) {
 
 										var response = JSON.parse(msg.data);
-										localStorage.leaderboard_json = JSON.stringify(response.data);
+										localStorage.vouchers_json = JSON.stringify(response.data);
 										if (response.response === "success") {
 
 											// Get Leaderboard
 											var jsonRequest = {
-												"get": "events"
+												"get": "leaderboard"
 											};
 
 											con.getInstance().send(JSON.stringify(jsonRequest));
 											con.getInstance().onmessage = function (msg) {
 
 												var response = JSON.parse(msg.data);
-												localStorage.events_json = JSON.stringify(response.data);
+												localStorage.leaderboard_json = JSON.stringify(response.data);
 												if (response.response === "success") {
 
-													// If everything is loaded go to the homescreen
-													loadHomeScreen();
+													// Get Leaderboard
+													var jsonRequest = {
+														"get": "events"
+													};
 
+													con.getInstance().send(JSON.stringify(jsonRequest));
+													con.getInstance().onmessage = function (msg) {
+
+														var response = JSON.parse(msg.data);
+														localStorage.events_json = JSON.stringify(response.data);
+														if (response.response === "success") {
+
+															// If everything is loaded go to the homescreen
+															loadHomeScreen();
+
+														} else {
+															ajax.loadError();
+														}
+													};
 												} else {
 													ajax.loadError();
 												}
 											};
-
 										} else {
 											ajax.loadError();
 										}
@@ -12346,6 +12539,159 @@ var websocket = (function ($) {
 		}
 	}
 
+	/**
+	 * Sends a request to the server to set a bet
+	 *
+	 * @param eventId
+	 * @param country
+	 * @param tokens
+	 */
+	function setBet(eventId, country, tokens) {
+
+		if (con.getInstance().readyState === 1) {
+
+			var jsonRequest = {
+				"get": "bet_set",
+				"user_hash": localStorage.userHash,
+				"bet": [{
+					"event_id": eventId.toString(),
+					"country": country,
+					"tokens": tokens
+				}]
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+			con.getInstance().onmessage = function (msg) {
+
+				var response = JSON.parse(msg.data);
+
+				// If bet was succesfully set update tokens and bets
+				if (response.response === "success") {
+					$("#content").hide();
+					$("#loading").show();
+
+					if (con.getInstance().readyState === 1) {
+
+						// Get tokens
+						var jsonRequest = {
+							"get": "tokens",
+							"user_hash": localStorage.userHash
+						};
+
+						con.getInstance().send(JSON.stringify(jsonRequest));
+						con.getInstance().onmessage = function (msg) {
+
+							var response = JSON.parse(msg.data);
+
+							localStorage.tokens = response.data[0].tokens;
+
+							if (response.response === "success") {
+
+								// Get Bets
+								var jsonRequest = {
+									"get": "bets",
+									"user_hash": localStorage.userHash
+								};
+
+								con.getInstance().send(JSON.stringify(jsonRequest));
+								con.getInstance().onmessage = function (msg) {
+
+									var response = JSON.parse(msg.data);
+									localStorage.bets_json = JSON.stringify(response.data);
+									if (response.response === "success") {
+
+										// load the betscreen
+										loadBets();
+									}
+								};
+							} else {
+								ajax.loadError();
+							}
+						};
+					} else {
+						ajax.loadError();
+					}
+				} else {
+					ajax.loadError();
+				}
+			};
+		}
+		else {
+			ajax.loadError();
+		}
+	}
+
+	function buyVoucher(voucherId){
+		if (con.getInstance().readyState === 1) {
+
+			var jsonRequest = {
+				"get": "vouchers_create",
+				"user_hash": localStorage.userHash,
+				"data": [{
+					"Voucher_id": voucherId.toString()
+				}]
+			};
+
+			con.getInstance().send(JSON.stringify(jsonRequest));
+			con.getInstance().onmessage = function (msg) {
+
+				var response = JSON.parse(msg.data);
+
+				// If bet was succesfully set update tokens and bets
+				if (response.response === "success") {
+					$("#content").hide();
+					$("#loading").show();
+
+					if (con.getInstance().readyState === 1) {
+
+						// Get tokens
+						var jsonRequest = {
+							"get": "tokens",
+							"user_hash": localStorage.userHash
+						};
+
+						con.getInstance().send(JSON.stringify(jsonRequest));
+						con.getInstance().onmessage = function (msg) {
+
+							var response = JSON.parse(msg.data);
+
+							localStorage.tokens = response.data[0].tokens;
+
+							if (response.response === "success") {
+
+								// Get Vouchers
+								var jsonRequest = {
+									"get": "vouchers",
+									"user_hash": localStorage.userHash
+								};
+
+								con.getInstance().send(JSON.stringify(jsonRequest));
+								con.getInstance().onmessage = function (msg) {
+
+									var response = JSON.parse(msg.data);
+									localStorage.vouchers_json = JSON.stringify(response.data);
+									if (response.response === "success") {
+
+										// load the betscreen
+										loadVouchers();
+									}
+								};
+							} else {
+								ajax.loadError();
+							}
+						};
+					} else {
+						ajax.loadError();
+					}
+				} else {
+					ajax.loadError();
+				}
+			};
+		}
+		else {
+			ajax.loadError();
+		}
+	}
 
 	return {
 		init: function () {
@@ -12356,7 +12702,14 @@ var websocket = (function ($) {
 		},
 		start: function () {
 			start();
+		},
+		setBet: function (eventId, country, tokens) {
+			setBet(eventId, country, tokens);
+		},
+		buyVoucher: function(voucherId){
+			buyVoucher(voucherId);
 		}
+
 	};
 
 })
@@ -12391,7 +12744,9 @@ jQuery(document).ready(function() {
 });
 
 jQuery(window).load(function(){
-	document.addEventListener("backbutton", cordova.init() , false);
+	document.addEventListener("deviceready", function(){
+		document.addEventListener("backbutton", cordova.init() , false);
+	}, false);
 
 	sidebar.init();
 });

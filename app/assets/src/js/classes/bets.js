@@ -11,6 +11,30 @@
 var bets = (function ($) {
 
 	/**
+	 * Function that defines the difference between two dates
+	 * @param datepart
+	 * @param fromDate
+	 * @param toDate
+	 * @returns {number}
+	 */
+	function dateDiff(datepart, fromDate, toDate) {
+		datepart = datepart.toLowerCase();
+
+		//Difference in milliseconds
+		var diff = toDate - fromDate;
+
+		var divideBy = {
+			w: 604800000,
+			d: 86400000,
+			h: 3600000,
+			n: 60000,
+			s: 1000
+		};
+
+		return Math.floor(diff / divideBy[datepart]) + 1;
+	}
+
+	/**
 	 * Initializing function
 	 */
 	function init() {
@@ -19,42 +43,36 @@ var bets = (function ($) {
 		body.on('click', ".bet", function () {
 			ajax.loadSetBet($(this).data("name"), $(this).data("id"));
 		});
-	}
 
+		body.on('click', '#bet_button', function () {
 
-	function setBet(){
-		var body = $("body");
-
-		body.on('click', '#bet_button', function(){
 			// Get selected country
-			var countryVal = $('#countries').val();
-			var tokenVal = $('#tokens').val();
+			var eventId = $(this).data("id");
+			var countryVal = $('#bet_countries').val();
+			var tokenVal = $('#set_tokens').val();
 
-			if (countryVal !== null) {
+			// Empty error
+			var error = $('#bet_error');
+			error.empty();
 
+			if (countryVal !== null && tokenVal !== "") {
 				// Store country id and name in localstorage
-				var country = JSON.parse(countryVal.replace(/'/g, "\""));
-
+				var country = JSON.parse(countryVal);
 				var countryId = country.id;
-			}else {
-				var error = $("#login_error");
-				error.show().empty().append('You have to select a country.');
+
+				if (tokenVal <= localStorage.tokens) {
+					websocket.setBet(eventId, countryId, tokenVal);
+				} else {
+					error.show().append('You can´t bet more tokens than you have.');
+				}
+			} else {
+				error.show().append('You have to fill out both fields.');
 			}
 		});
 	}
 
 	/**
-	 * Todo
-	 *
-	 * Show all events
-	 * Put betting option ext to them
-	 * if clicked how much do you want to bet / country
-	 * bet
-	 *
-	 * mark the betted ones
-	 * mark the won ones and the lost ones
-	 *
-	 * make description for bets
+	 * Reutns all events
 	 */
 	function getEvents() {
 		var events = $("#events");
@@ -67,18 +85,41 @@ var bets = (function ($) {
 			var eventsJson = JSON.parse(localStorage.events_json);
 			$.each(eventsJson, function (i, v) {
 
-				string += "<tr>" +
-				"<td>" + v.eventName + "</td>" +
-				"<td>" + $.formatDateTime('dd.mm.y gg:ii:ss', new Date(v.date)) + "</td>" +
-				"<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
-				"' data-id='" + v.event_id + "' class='bet'></td>" +
-				"</tr>";
+				// Only if dates are in the future
+				if(dateDiff("s", new Date(), new Date(v.date)) > 0){
+					//Check if bet already exists
+					var betsJson = JSON.parse(localStorage.bets_json);
+					var exists = false;
 
+					$.each(betsJson, function (index, val) {
+						if (val.event_id === v.event_id) {
+							exists = true;
+							return true;
+						}
+					});
+
+					if (exists) {
+						string += "<tr class='exists'>";
+					}
+					else {
+						string += "<tr>";
+					}
+					string += "<td>" + v.eventName + "</td>" +
+					"<td>" + $.formatDateTime('dd.mm.y gg:ii:ss', new Date(v.date)) + "</td>";
+
+					if (!exists) {
+						string += "<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
+						"' data-id='" + v.event_id + "' class='bet'></td>";
+					} else {
+						string += "<td>X</td>";
+					}
+
+					string += "</tr>";
+				}
 			});
 
 			events.append(string);
 		}
-
 	}
 
 	return {

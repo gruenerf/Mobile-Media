@@ -31,7 +31,7 @@ var userSetup = (function ($) {
 			if (countryval !== null) {
 
 				// Store country id and name in localstorage
-				var country = JSON.parse(countryval.replace(/'/g, "\""));
+				var country = JSON.parse(countryval);
 
 				var countryName = country.name;
 				localStorage.countryId = country.id;
@@ -51,20 +51,19 @@ var userSetup = (function ($) {
 		});
 	}
 
-	function loadCountries() {
+	function loadCountries(selector) {
+
 		// Read countries out of localStorage
 		var string = "";
 		var countries = JSON.parse(localStorage.countries_json);
 
-		console.log(countries);
-
 		// If countries exist
 		$.each(countries, function (i, v) {
-			string += "<option value=\"{'id':'" + v.id + "','name':'" + v.name + "'}\">" + v.name + "</option>";
+			string += "<option value=\'{\"id\":\"" + v.id + "\",\"name\":\"" + v.name + "\"}\'>" + v.name + "</option>";
 		});
 
 		// Append the options to the select box
-		$("#countries").append(string);
+		$(selector).append(string);
 	}
 
 
@@ -87,11 +86,11 @@ var userSetup = (function ($) {
 			init();
 		},
 		setupLogin: function () {
-			loadCountries();
+			loadCountries("#countries");
 			setupLogin();
 		},
-		loadCountries: function () {
-			loadCountries();
+		loadCountries: function (selector) {
+			loadCountries(selector);
 		}
 
 	};

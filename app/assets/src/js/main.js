@@ -29,7 +29,9 @@ jQuery(document).ready(function() {
 });
 
 jQuery(window).load(function(){
-	document.addEventListener("backbutton", cordova.init() , false);
+	document.addEventListener("deviceready", function(){
+		document.addEventListener("backbutton", cordova.init() , false);
+	}, false);
 
 	sidebar.init();
 });

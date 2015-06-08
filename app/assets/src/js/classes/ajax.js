@@ -14,7 +14,11 @@ var ajax = (function ($) {
 	 * Initializing function
 	 */
 	function init() {
+		var body = $("body");
 
+		body.on("click", "#cancel", function () {
+			document.getElementById("dialog").close();
+		});
 	}
 
 	/**
@@ -47,10 +51,10 @@ var ajax = (function ($) {
 			loadVouchers();
 		});
 
-		body.on('click', "#link_retailers", function () {
+		body.on('click', "#link_manual", function () {
 			$(".sidebar_item").removeClass('active');
-			$("#link_retailers").addClass("active");
-			loadRetailers();
+			$("#link_manual").addClass("active");
+			loadManual();
 		});
 	}
 
@@ -97,6 +101,21 @@ var ajax = (function ($) {
 			// Show content
 			content.show();
 			container.show();
+
+			// Show notification about earned tokens
+			if (localStorage.tokenDiff) {
+				if (parseInt(localStorage.tokenDiff) > 0) {
+					var dialog = $("#dialog");
+
+					var string = "<div class='question'>You earned " + localStorage.tokenDiff + " Tokens.</div>" +
+						"<div class='buttonarea'><button id='cancel'>Close</button></div>";
+
+
+					dialog.empty().append(string);
+					document.getElementById("dialog").showModal();
+					localStorage.removeItem("tokenDiff");
+				}
+			}
 		});
 	}
 
@@ -116,12 +135,20 @@ var ajax = (function ($) {
 	/**
 	 * Loads Bets
 	 */
-	function loadBets() {
+	function loadBets(betSet) {
 		var content = $("#content");
 
 		content.load("view/bets.html", function () {
 			content.attr('class', 'content bets');
 			bets.getEvents();
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+
+			if (betSet !== undefined) {
+				$("#notification").append('Bet was successfully set.').show();
+			}
+			content.show();
 			sidebar.close();
 		});
 	}
@@ -134,21 +161,28 @@ var ajax = (function ($) {
 
 		content.load("view/setBet.html", function () {
 			content.attr('class', 'content setBet');
+			userSetup.loadCountries("#bet_countries");
 			$("#eventName").empty().append(eventName);
-			$("#continue_button").data("id", eventId);
-
-			userSetup.loadCountries();
+			$("#bet_button").attr("data-id", eventId);
 		});
 	}
 
 	/**
 	 * Loads Vouchers
 	 */
-	function loadVouchers() {
+	function loadVouchers(boughtVoucher) {
 		var content = $("#content");
 
 		content.load("view/vouchers.html", function () {
 			content.attr('class', 'content vouchers');
+
+			// Insert necessary data in view
+			$("#tokens").empty().append(localStorage.tokens);
+
+			if (boughtVoucher !== undefined) {
+				("#notification").append('voucher was successfully bought.').show();
+			}
+			vouchers.init();
 			sidebar.close();
 		});
 	}
@@ -156,11 +190,11 @@ var ajax = (function ($) {
 	/**
 	 * Loads Retailers
 	 */
-	function loadRetailers() {
+	function loadManual() {
 		var content = $("#content");
 
-		content.load("view/retailers.html", function () {
-			content.attr('class', 'content retailers');
+		content.load("view/manual.html", function () {
+			content.attr('class', 'content manual');
 			sidebar.close();
 		});
 	}
@@ -190,7 +224,13 @@ var ajax = (function ($) {
 		loadLogin: function () {
 			loadLogin();
 		},
-		loadSetBet: function(eventName, eventId) {
+		loadBets: function (betSet) {
+			loadBets(betSet);
+		},
+		loadVouchers: function (boughtVoucher) {
+			loadBets(boughtVoucher);
+		},
+		loadSetBet: function (eventName, eventId) {
 			loadSetBet(eventName, eventId);
 		}
 	};

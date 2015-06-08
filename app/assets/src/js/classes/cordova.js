@@ -17,13 +17,12 @@ var cordova = (function ($) {
 
 		var content = $('#content');
 
-		// TODO anpassen
 		if (content.hasClass('home')) {
 			navigator.app.exitApp();
-		} else if (content.hasClass('addNewRecipe')) {
-			ajax.loadRecipes();
+		} else if (content.hasClass('setBet')) {
+			ajax.loadBets();
 		} else {
-			//ajax.loadHome();
+			ajax.loadHome();
 		}
 	}
 

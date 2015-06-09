@@ -118,7 +118,7 @@ html {
 		top: 50%;
 		margin-top: -64px;
 
-		.question{
+		.question, .voucher_hash{
 			font-size: 20px;
 			margin-bottom: 20px;
 			color: white;
@@ -458,17 +458,6 @@ html {
 							margin-bottom: 20px;
 							border-bottom: 2px solid #ffffff;
 
-							.country_flag {
-								vertical-align: middle;
-								display: inline-block;
-								height: 30px;
-								width: 30px;
-								border-radius: 5px;
-								background-image: url("../img/flag.png");
-								background-size: cover;
-								background-position-x: 50%;
-							}
-
 							.country_name {
 								padding-left: 10px;
 								vertical-align: middle;
@@ -616,23 +605,23 @@ html {
 					border-style: solid;
 					background: $color_background;
 
-					&:nth-child(5) .wrapper.unlocked {
+					&:nth-child(5).unlocked .wrapper  {
 						background-color: #5a000c;
 					}
 
-					&:nth-child(4) .wrapper.unlocked {
+					&:nth-child(4).unlocked .wrapper {
 						background-color: #003d86;
 					}
 
-					&:nth-child(1) .wrapper.unlocked {
+					&:nth-child(1).unlocked .wrapper {
 						background-color: #009a46;
 					}
 
-					&:nth-child(2) .wrapper.unlocked {
+					&:nth-child(2).unlocked .wrapper {
 						background-color: #1591d4;
 					}
 
-					&:nth-child(3) .wrapper.unlocked {
+					&:nth-child(3).unlocked .wrapper {
 						background-color: #f98726;
 					}
 

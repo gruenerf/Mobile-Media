@@ -234,6 +234,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         userToken = queries(userTokenQuery, cursor, conn)
         #print(tokenCost[0][0])
         #print(userToken[0][0])
+        #print(userToken[0][0] >= tokenCost[0][0])
         if userToken[0][0] >= tokenCost[0][0]:
             createUserVoucherQuery = """INSERT INTO userVoucher(user_hash, v_id) VALUES("%s", "%s")"""%(user, line['Voucher_id'])
             decreaseUserTokenQuery = """UPDATE user SET token = '%s' WHERE user_hash = '%s'"""%(userToken[0][0]-tokenCost[0][0], user)
@@ -241,12 +242,10 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
                 queries(createUserVoucherQuery, cursor, conn, readOrWrite = 'w')
                 queries(decreaseUserTokenQuery, cursor, conn, readOrWrite = 'w')
                 userVoucherQuery = """SELECT u1.v_id, u2.value FROM uservoucher AS u1 INNER JOIN voucher AS u2 ON u1.v_id=u2.v_id WHERE user_hash = "%s";"""%user
+                print(userVoucherQuery)
                 userVoucher = queries(userVoucherQuery, cursor, conn)
                 data = []
-                for line in userVoucher:
-                    data.append('{"voucher_id":"%s", "voucherValue":"%s"},'%(line[0], line[1]))
-                    data = ''.join(data)[:-1]
-                data = '{"response":"success", "type":"voucher_create", "data":[%s]}'%data
+                data = '{"response":"success", "type":"voucher_create", "data":""}'
                 self.write_message(data)
             except:
                 self.write_message(json.dumps({"response":"failure","type":"vouchers_create", "data":""}).encode('utf-8'))

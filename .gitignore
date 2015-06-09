@@ -4,3 +4,7 @@ app/.sass-cache
 app/assets/bower_components/
 
 .idea/
+python/myDbConnect.pyc
+python/mysql_dbconfig.pyc
+python/__pycache__/myDbConnect.cpython-34.pyc
+python/__pycache__/mysql_dbconfig.cpython-34.pyc

@@ -180,9 +180,10 @@ var ajax = (function ($) {
 			$("#tokens").empty().append(localStorage.tokens);
 
 			if (boughtVoucher !== undefined) {
-				("#notification").append('voucher was successfully bought.').show();
+				$("#notification").append('Voucher was successfully bought.').show();
 			}
 			vouchers.init();
+			content.show();
 			sidebar.close();
 		});
 	}
@@ -228,7 +229,7 @@ var ajax = (function ($) {
 			loadBets(betSet);
 		},
 		loadVouchers: function (boughtVoucher) {
-			loadBets(boughtVoucher);
+			loadVouchers(boughtVoucher);
 		},
 		loadSetBet: function (eventName, eventId) {
 			loadSetBet(eventName, eventId);

@@ -111,7 +111,7 @@ var bets = (function ($) {
 						string += "<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
 						"' data-id='" + v.event_id + "' class='bet'></td>";
 					} else {
-						string += "<td>X</td>";
+						string += "<td>Set</td>";
 					}
 
 					string += "</tr>";

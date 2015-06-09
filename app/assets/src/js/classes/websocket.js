@@ -17,7 +17,7 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://87.106.24.155:9999/ws');
+			var websocket = new WebSocket('ws://127.0.01:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -179,7 +179,7 @@ var websocket = (function ($) {
 
 						var response = JSON.parse(msg.data);
 
-						localStorage.tokenDiff = localStorage.tokens-response.data[0].tokens;
+						localStorage.tokenDiff = response.data[0].tokens-localStorage.tokens;
 						localStorage.tokens = response.data[0].tokens;
 
 						if (response.response === "success") {
@@ -347,7 +347,9 @@ var websocket = (function ($) {
 	}
 
 	function buyVoucher(voucherId){
+
 		if (con.getInstance().readyState === 1) {
+
 
 			var jsonRequest = {
 				"get": "vouchers_create",

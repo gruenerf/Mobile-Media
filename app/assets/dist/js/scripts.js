@@ -11447,9 +11447,10 @@ var ajax = (function ($) {
 			$("#tokens").empty().append(localStorage.tokens);
 
 			if (boughtVoucher !== undefined) {
-				("#notification").append('voucher was successfully bought.').show();
+				$("#notification").append('Voucher was successfully bought.').show();
 			}
 			vouchers.init();
+			content.show();
 			sidebar.close();
 		});
 	}
@@ -11495,7 +11496,7 @@ var ajax = (function ($) {
 			loadBets(betSet);
 		},
 		loadVouchers: function (boughtVoucher) {
-			loadBets(boughtVoucher);
+			loadVouchers(boughtVoucher);
 		},
 		loadSetBet: function (eventName, eventId) {
 			loadSetBet(eventName, eventId);
@@ -11615,7 +11616,7 @@ var bets = (function ($) {
 						string += "<td><img src='assets/dist/img/bets.png' data-name='" + v.eventName +
 						"' data-id='" + v.event_id + "' class='bet'></td>";
 					} else {
-						string += "<td>X</td>";
+						string += "<td>Set</td>";
 					}
 
 					string += "</tr>";
@@ -12220,59 +12221,96 @@ var vouchers = (function ($) {
 	function init() {
 		var body = $("body");
 
+		// Colors the already bought ovuchers
 		if (localStorage.vouchers_json) {
 			var vouchersJson = JSON.parse(localStorage.vouchers_json);
 			$.each(vouchersJson, function (i, v) {
-				if (v.voucher_id === 1) {
-					$("#ten .wrapper").addClass("unlocked");
+				if (parseInt(v.voucher_id) === 1) {
+					$("#ten").addClass("unlocked");
 				}
-				if (v.voucher_id === 2) {
-					$("#twenty .wrapper").addClass("unlocked");
+				if (parseInt(v.voucher_id) === 2) {
+					$("#twenty").addClass("unlocked");
 				}
-				if (v.voucher_id === 3) {
-					$("#thirty .wrapper").addClass("unlocked");
+				if (parseInt(v.voucher_id) === 3) {
+					$("#thirty").addClass("unlocked");
 				}
-				if (v.voucher_id === 4) {
-					$("#forty .wrapper").addClass("unlocked");
+				if (parseInt(v.voucher_id) === 4) {
+					$("#forty").addClass("unlocked");
 				}
-				if (v.voucher_id === 5) {
-					$("#fifty .wrapper").addClass("unlocked");
+				if (parseInt(v.voucher_id) === 5) {
+					$("#fifty").addClass("unlocked");
 				}
 			});
 		}
 
-		body.on("click", ".voucher", function () {
-			var dialog = $("#dialog");
 
+		// Opens dialog to buy a voucher
+		body.on("click", ".voucher", function () {
+
+			var dialog = $("#dialog");
 			var string = "";
 
-			if ($(this).data("price") < localStorage.tokens) {
-				string += "<div class='question'>Do you want to purchase the voucher for the price of " +
-							$(this).data("price") + " Tokens?</div>" +
-							"<div class='buttonarea'><button id='cancel'>Cancel</button>" +
-							"<button data-id=" + $(this).data("id") + " data-price=" + $(this).data("price") +
-							" id='buy_voucher'>Yes</button></div>";
+			if (!$(this).hasClass("unlocked")) {
+				if ($(this).data("price") < localStorage.tokens) {
+					string += "<div class='question'>Do you want to purchase the voucher for the price of " +
+					$(this).data("price") + " Tokens?</div>" +
+					"<div class='buttonarea'><button id='cancel'>Cancel</button>" +
+					"<button data-id=" + $(this).data("id") + " data-price=" + $(this).data("price") +
+					" id='buy_voucher'>Yes</button></div>";
+				} else {
+					string += "<div class='question'>You don´t have enough tokens to make that purchase!</div>" +
+					"<div class='buttonarea'><button id='cancel'>Back</button></div>";
+				}
 			} else {
-				string += "<div class='question'>You don´t have enough tokens to make that purchase!</div>" +
-							"<div class='buttonarea'><button id='cancel'>Back</button></div>";
+				string += "<div class='question'>Use this code to get your discount!</div>" +
+				"<div class='voucher_hash' id='voucher_hash'>" + generateVoucherHash($(this).data("id")) + "</div>" +
+				"<div class='buttonarea'><button id='cancel'>Back</button></div>";
 			}
 
+
 			dialog.empty().append(string);
-			document.getElementById("dialog").showModal();
+			document.getElementById("dialog").showModal(// When buying selected starts servercommunication
+				$("#buy_voucher").click(function () {
+					websocket.buyVoucher($(this).data("id"));
+					document.getElementById("dialog").close();
+				}));
 		});
 
-		body.on("click", "#buy_voucher", function () {
-			websocket.buyVoucher($(this).data("id"));
-			document.getElementById("dialog").close();
-		});
+
+
 	}
 
 	/**
 	 * Generates a voucher Hash which can be used as a validation method for Vouchers
-	 * @param amount
+	 * @param id
 	 * @returns {string}
 	 */
-	function generateVoucherHash(amount) {
+	function generateVoucherHash(id) {
+
+		var amount = "";
+
+		switch (id) {
+			case 1 :
+				amount = 10;
+				break;
+			case 2 :
+				amount = 20;
+				break;
+			case 3 :
+				amount = 30;
+				break;
+			case 4 :
+				amount = 40;
+				break;
+			case 5 :
+				amount = 50;
+				break;
+			default :
+				amount = "";
+				break;
+		}
+
+
 		return localStorage.userHash.substr(1, 4) + amount + localStorage.userHash.substr(5, 4);
 	}
 
@@ -12301,7 +12339,7 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://87.106.24.155:9999/ws');
+			var websocket = new WebSocket('ws://127.0.01:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -12463,7 +12501,7 @@ var websocket = (function ($) {
 
 						var response = JSON.parse(msg.data);
 
-						localStorage.tokenDiff = localStorage.tokens-response.data[0].tokens;
+						localStorage.tokenDiff = response.data[0].tokens-localStorage.tokens;
 						localStorage.tokens = response.data[0].tokens;
 
 						if (response.response === "success") {
@@ -12631,7 +12669,9 @@ var websocket = (function ($) {
 	}
 
 	function buyVoucher(voucherId){
+
 		if (con.getInstance().readyState === 1) {
+
 
 			var jsonRequest = {
 				"get": "vouchers_create",

@@ -49,7 +49,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
            self.write_message(json.dumps({"response":"failure","type":"vouchers_create", "data":""}).encode('utf-8'))
            print("bet can't be placed. event has already ended!")
         else:
-            if tokenCheck < tokens:
+            if int(tokenCheck) < int(tokens):
                 self.write_message(json.dumps({"response":"failure", "type":"bet_set"}).encode('utf-8'))
                 print("NOT ENOUGH TOKENS AVAILABLE")
             else:
@@ -63,6 +63,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
    except Exception:
           print("Error at request for setting bets! Please look for the problem!!!")
           pass
+
   # --- Wettabfragen ---
   elif request['get'] == 'bets':
    try:
@@ -151,11 +152,11 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
   # --- Leaderboardabfrage ---
   elif request['get'] == "leaderboard":
    try:
-       getMedalsGoldQuery = ("""select value,SUM(value) AS TotalMedals, country_id from medals WHERE value = 1 GROUP BY value, country_id ORDER BY value, SUM(value) DESC""")
+       getMedalsGoldQuery = ("""select value,COUNT(value) AS TotalMedals, country_id from medals WHERE value = 1 GROUP BY value, country_id ORDER BY value, COUNT(value) DESC""")
        getMedalsGold = queries(getMedalsGoldQuery, cursor, conn)
-       getMedalsSilverQuery = ("""select value,SUM(value) AS TotalMedals, country_id from medals WHERE value = 2 GROUP BY value, country_id ORDER BY value, SUM(value) DESC""")
+       getMedalsSilverQuery = ("""select value,COUNT(value) AS TotalMedals, country_id from medals WHERE value = 2 GROUP BY value, country_id ORDER BY value, COUNT(value) DESC""")
        getMedalsSilver = queries(getMedalsSilverQuery, cursor, conn)
-       getMedalsBronzeQuery = ("""select value,SUM(value) AS TotalMedals, country_id from medals WHERE value = 3 GROUP BY value, country_id ORDER BY value, SUM(value) DESC""")
+       getMedalsBronzeQuery = ("""select value,COUNT(value) AS TotalMedals, country_id from medals WHERE value = 3 GROUP BY value, country_id ORDER BY value, COUNT(value) DESC""")
        getMedalsBronze = queries(getMedalsBronzeQuery, cursor, conn)
        #counter = 0
        print(getMedalsGold)
@@ -236,7 +237,7 @@ class WebsocketHandler(tornado.websocket.WebSocketHandler):
         #print(userToken[0][0])
         #print(userToken[0][0] >= tokenCost[0][0])
         if userToken[0][0] >= tokenCost[0][0]:
-            createUserVoucherQuery = """INSERT INTO userVoucher(user_hash, v_id) VALUES("%s", "%s")"""%(user, line['Voucher_id'])
+            createUserVoucherQuery = """INSERT INTO uservoucher(user_hash, v_id) VALUES("%s", "%s")"""%(user, line['Voucher_id'])
             decreaseUserTokenQuery = """UPDATE user SET token = '%s' WHERE user_hash = '%s'"""%(userToken[0][0]-tokenCost[0][0], user)
             try:
                 queries(createUserVoucherQuery, cursor, conn, readOrWrite = 'w')

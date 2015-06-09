@@ -7,7 +7,7 @@
 	"dependencies": {
 		"jquery": "*",
 		"bootstrap-sass": "*",
-		"jquery-touchswipe": "*"
+		"jQuery.mmenu":"*"
 	},
 	"exportsOverride": {
 		"exportsOverride": {

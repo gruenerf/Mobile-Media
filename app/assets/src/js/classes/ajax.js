@@ -77,15 +77,18 @@ var ajax = (function ($) {
 	 */
 	function loadHome() {
 		var content = $("#content");
-		var container = $("#container");
 		var login = $("#login");
 		var loading = $("#loading");
+		var header = $("#header");
+		var menu_icon = $("#menu-icon");
 
 		content.load("view/home.html", function () {
-			content.attr('class', 'content home');
-			sidebar.close();
+
 			login.hide();
 			loading.hide();
+			content.attr('class', 'content home');
+			sidebar.close();
+
 
 			// Insert necessary data in view
 			$("#tokens").empty().append(localStorage.tokens);
@@ -100,7 +103,8 @@ var ajax = (function ($) {
 
 			// Show content
 			content.show();
-			container.show();
+			menu_icon.show();
+			header.show();
 
 			// Show notification about earned tokens
 			if (localStorage.tokenDiff) {
@@ -160,6 +164,7 @@ var ajax = (function ($) {
 		var content = $("#content");
 
 		content.load("view/setBet.html", function () {
+			bets.setBetButton();
 			content.attr('class', 'content setBet');
 			userSetup.loadCountries("#bet_countries");
 			$("#eventName").empty().append(eventName);

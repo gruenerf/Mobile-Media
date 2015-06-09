@@ -9208,2064 +9208,126 @@ if ( typeof noGlobal === strundefined ) {
 return jQuery;
 
 }));
-;/*
-* @fileOverview TouchSwipe - jQuery Plugin
-* @version 1.6.6
-*
-* @author Matt Bryson http://www.github.com/mattbryson
-* @see https://github.com/mattbryson/TouchSwipe-Jquery-Plugin
-* @see http://labs.rampinteractive.co.uk/touchSwipe/
-* @see http://plugins.jquery.com/project/touchSwipe
-*
-* Copyright (c) 2010-2015 Matt Bryson
-* Dual licensed under the MIT or GPL Version 2 licenses.
-*
-*/
-
-/*
-*
-* Changelog
-* $Date: 2010-12-12 (Wed, 12 Dec 2010) $
-* $version: 1.0.0
-* $version: 1.0.1 - removed multibyte comments
-*
-* $Date: 2011-21-02 (Mon, 21 Feb 2011) $
-* $version: 1.1.0 	- added allowPageScroll property to allow swiping and scrolling of page
-*					- changed handler signatures so one handler can be used for multiple events
-* $Date: 2011-23-02 (Wed, 23 Feb 2011) $
-* $version: 1.2.0 	- added click handler. This is fired if the user simply clicks and does not swipe. The event object and click target are passed to handler.
-*					- If you use the http://code.google.com/p/jquery-ui-for-ipad-and-iphone/ plugin, you can also assign jQuery mouse events to children of a touchSwipe object.
-* $version: 1.2.1 	- removed console log!
-*
-* $version: 1.2.2 	- Fixed bug where scope was not preserved in callback methods.
-*
-* $Date: 2011-28-04 (Thurs, 28 April 2011) $
-* $version: 1.2.4 	- Changed licence terms to be MIT or GPL inline with jQuery. Added check for support of touch events to stop non compatible browsers erroring.
-*
-* $Date: 2011-27-09 (Tues, 27 September 2011) $
-* $version: 1.2.5 	- Added support for testing swipes with mouse on desktop browser (thanks to https://github.com/joelhy)
-*
-* $Date: 2012-14-05 (Mon, 14 May 2012) $
-* $version: 1.2.6 	- Added timeThreshold between start and end touch, so user can ignore slow swipes (thanks to Mark Chase). Default is null, all swipes are detected
-*
-* $Date: 2012-05-06 (Tues, 05 June 2012) $
-* $version: 1.2.7 	- Changed time threshold to have null default for backwards compatibility. Added duration param passed back in events, and refactored how time is handled.
-*
-* $Date: 2012-05-06 (Tues, 05 June 2012) $
-* $version: 1.2.8 	- Added the possibility to return a value like null or false in the trigger callback. In that way we can control when the touch start/move should take effect or not (simply by returning in some cases return null; or return false;) This effects the ontouchstart/ontouchmove event.
-*
-* $Date: 2012-06-06 (Wed, 06 June 2012) $
-* $version: 1.3.0 	- Refactored whole plugin to allow for methods to be executed, as well as exposed defaults for user override. Added 'enable', 'disable', and 'destroy' methods
-*
-* $Date: 2012-05-06 (Fri, 05 June 2012) $
-* $version: 1.3.1 	- Bug fixes  - bind() with false as last argument is no longer supported in jQuery 1.6, also, if you just click, the duration is now returned correctly.
-*
-* $Date: 2012-29-07 (Sun, 29 July 2012) $
-* $version: 1.3.2	- Added fallbackToMouseEvents option to NOT capture mouse events on non touch devices.
-* 			- Added "all" fingers value to the fingers property, so any combination of fingers triggers the swipe, allowing event handlers to check the finger count
-*
-* $Date: 2012-09-08 (Thurs, 9 Aug 2012) $
-* $version: 1.3.3	- Code tidy prep for minefied version
-*
-* $Date: 2012-04-10 (wed, 4 Oct 2012) $
-* $version: 1.4.0	- Added pinch support, pinchIn and pinchOut
-*
-* $Date: 2012-11-10 (Thurs, 11 Oct 2012) $
-* $version: 1.5.0	- Added excludedElements, a jquery selector that specifies child elements that do NOT trigger swipes. By default, this is one select that removes all form, input select, button and anchor elements.
-*
-* $Date: 2012-22-10 (Mon, 22 Oct 2012) $
-* $version: 1.5.1	- Fixed bug with jQuery 1.8 and trailing comma in excludedElements
-*					- Fixed bug with IE and eventPreventDefault()
-* $Date: 2013-01-12 (Fri, 12 Jan 2013) $
-* $version: 1.6.0	- Fixed bugs with pinching, mainly when both pinch and swipe enabled, as well as adding time threshold for multifinger gestures, so releasing one finger beofre the other doesnt trigger as single finger gesture.
-*					- made the demo site all static local HTML pages so they can be run locally by a developer
-*					- added jsDoc comments and added documentation for the plugin	
-*					- code tidy
-*					- added triggerOnTouchLeave property that will end the event when the user swipes off the element.
-* $Date: 2013-03-23 (Sat, 23 Mar 2013) $
-* $version: 1.6.1	- Added support for ie8 touch events
-* $version: 1.6.2	- Added support for events binding with on / off / bind in jQ for all callback names.
-*                   - Deprecated the 'click' handler in favour of tap.
-*                   - added cancelThreshold property
-*                   - added option method to update init options at runtime
-* $version 1.6.3    - added doubletap, longtap events and longTapThreshold, doubleTapThreshold property
-*
-* $Date: 2013-04-04 (Thurs, 04 April 2013) $
-* $version 1.6.4    - Fixed bug with cancelThreshold introduced in 1.6.3, where swipe status no longer fired start event, and stopped once swiping back.
-*
-* $Date: 2013-08-24 (Sat, 24 Aug 2013) $
-* $version 1.6.5    - Merged a few pull requests fixing various bugs, added AMD support.
-*
-* $Date: 2014-06-04 (Wed, 04 June 2014) $
-* $version 1.6.6 	- Merge of pull requests.
-*    				- IE10 touch support 
-*    				- Only prevent default event handling on valid swipe
-*    				- Separate license/changelog comment
-*    				- Detect if the swipe is valid at the end of the touch event.
-*    				- Pass fingerdata to event handlers. 
-*    				- Add 'hold' gesture 
-*    				- Be more tolerant about the tap distance
-*    				- Typos and minor fixes
-*
-* $Date: 2015-22-01 (Thurs, 22 Jan 2015) $
-* $version 1.6.7    - Added patch from https://github.com/mattbryson/TouchSwipe-Jquery-Plugin/issues/206 to fix memory leak
-*
-* $Date: 2015-2-2 (Mon, 2 Feb 2015) $
-* $version 1.6.7    - Added preventDefaultEvents option to proxy events regardless.
-*					- Fixed issue with swipe and pinch not triggering at the same time
-*/
-
-/**
- * See (http://jquery.com/).
- * @name $
- * @class 
- * See the jQuery Library  (http://jquery.com/) for full details.  This just
- * documents the function and classes that are added to jQuery by this plug-in.
+;/*	
+ * jQuery mmenu v5.2.0
+ * @requires jQuery 1.7.0 or later
+ *
+ * mmenu.frebsite.nl
+ *	
+ * Copyright (c) Fred Heusschen
+ * www.frebsite.nl
+ *
+ * Licensed under the MIT license:
+ * http://en.wikipedia.org/wiki/MIT_License
  */
- 
-/**
- * See (http://jquery.com/)
- * @name fn
- * @class 
- * See the jQuery Library  (http://jquery.com/) for full details.  This just
- * documents the function and classes that are added to jQuery by this plug-in.
- * @memberOf $
+!function(e){function t(){e[n].glbl||(r={$wndw:e(window),$html:e("html"),$body:e("body")},a={},i={},l={},e.each([a,i,l],function(e,t){t.add=function(e){e=e.split(" ");for(var n=0,s=e.length;s>n;n++)t[e[n]]=t.mm(e[n])}}),a.mm=function(e){return"mm-"+e},a.add("wrapper menu vertical panel nopanel current highest opened subopened navbar hasnavbar title btn prev next first last listview nolistview selected divider spacer hidden fullsubopen"),a.umm=function(e){return"mm-"==e.slice(0,3)&&(e=e.slice(3)),e},i.mm=function(e){return"mm-"+e},i.add("parent sub"),l.mm=function(e){return e+".mm"},l.add("transitionend webkitTransitionEnd mousedown mouseup touchstart touchmove touchend click keydown"),e[n]._c=a,e[n]._d=i,e[n]._e=l,e[n].glbl=r)}var n="mmenu",s="5.2.0";if(!e[n]){e[n]=function(e,t,n){this.$menu=e,this._api=["bind","init","update","setSelected","getInstance","openPanel","closePanel","closeAllPanels"],this.opts=t,this.conf=n,this.vars={},this.cbck={},"function"==typeof this.___deprecated&&this.___deprecated(),this._initMenu(),this._initAnchors();var s=this.$menu.children(this.conf.panelNodetype);return this._initAddons(),this.init(s),"function"==typeof this.___debug&&this.___debug(),this},e[n].version=s,e[n].addons={},e[n].uniqueId=0,e[n].defaults={extensions:[],navbar:{title:"Menu",titleLink:"panel"},onClick:{setSelected:!0},slidingSubmenus:!0},e[n].configuration={classNames:{panel:"Panel",vertical:"Vertical",selected:"Selected",divider:"Divider",spacer:"Spacer"},clone:!1,openingInterval:25,panelNodetype:"ul, ol, div",transitionDuration:400},e[n].prototype={init:function(e){e=e.not("."+a.nopanel),e=this._initPanels(e),this.trigger("init",e),this.trigger("update")},update:function(){this.trigger("update")},setSelected:function(e){this.$menu.find("."+a.listview).children().removeClass(a.selected),e.addClass(a.selected),this.trigger("setSelected",e)},openPanel:function(t){var n=t.parent();if(n.hasClass(a.vertical)){var s=n.parents("."+a.subopened);if(s.length)return this.openPanel(s.first());n.addClass(a.opened)}else{if(t.hasClass(a.current))return;var i=e(this.$menu).children("."+a.panel),l=i.filter("."+a.current);i.removeClass(a.highest).removeClass(a.current).not(t).not(l).not("."+a.vertical).addClass(a.hidden),t.hasClass(a.opened)?l.addClass(a.highest).removeClass(a.opened).removeClass(a.subopened):(t.addClass(a.highest),l.addClass(a.subopened)),t.removeClass(a.hidden).addClass(a.current),setTimeout(function(){t.removeClass(a.subopened).addClass(a.opened)},this.conf.openingInterval)}this.trigger("openPanel",t)},closePanel:function(e){var t=e.parent();t.hasClass(a.vertical)&&(t.removeClass(a.opened),this.trigger("closePanel",e))},closeAllPanels:function(){this.$menu.find("."+a.listview).children().removeClass(a.selected).filter("."+a.vertical).removeClass(a.opened);var e=this.$menu.children("."+a.panel),t=e.first();this.$menu.children("."+a.panel).not(t).removeClass(a.subopened).removeClass(a.opened).removeClass(a.current).removeClass(a.highest).addClass(a.hidden),this.openPanel(t)},togglePanel:function(e){var t=e.parent();t.hasClass(a.vertical)&&this[t.hasClass(a.opened)?"closePanel":"openPanel"](e)},getInstance:function(){return this},bind:function(e,t){this.cbck[e]=this.cbck[e]||[],this.cbck[e].push(t)},trigger:function(){var e=this,t=Array.prototype.slice.call(arguments),n=t.shift();if(this.cbck[n])for(var s=0,a=this.cbck[n].length;a>s;s++)this.cbck[n][s].apply(e,t)},_initMenu:function(){this.opts.offCanvas&&this.conf.clone&&(this.$menu=this.$menu.clone(!0),this.$menu.add(this.$menu.find("[id]")).filter("[id]").each(function(){e(this).attr("id",a.mm(e(this).attr("id")))})),this.$menu.contents().each(function(){3==e(this)[0].nodeType&&e(this).remove()}),this.$menu.parent().addClass(a.wrapper);var t=[a.menu];this.opts.slidingSubmenus||t.push(a.vertical),this.opts.extensions=this.opts.extensions.length?"mm-"+this.opts.extensions.join(" mm-"):"",this.opts.extensions&&t.push(this.opts.extensions),this.$menu.addClass(t.join(" "))},_initPanels:function(t){var n=this;this.__findAddBack(t,"ul, ol").not("."+a.nolistview).addClass(a.listview);var s=this.__findAddBack(t,"."+a.listview).children();this.__refactorClass(s,this.conf.classNames.selected,"selected"),this.__refactorClass(s,this.conf.classNames.divider,"divider"),this.__refactorClass(s,this.conf.classNames.spacer,"spacer"),this.__refactorClass(this.__findAddBack(t,"."+this.conf.classNames.panel),this.conf.classNames.panel,"panel");var l=e(),r=t.add(t.find("."+a.panel)).add(this.__findAddBack(t,"."+a.listview).children().children(this.conf.panelNodetype)).not("."+a.nopanel);this.__refactorClass(r,this.conf.classNames.vertical,"vertical"),this.opts.slidingSubmenus||r.addClass(a.vertical),r.each(function(){var t=e(this),s=t;t.is("ul, ol")?(t.wrap('<div class="'+a.panel+'" />'),s=t.parent()):s.addClass(a.panel);var i=t.attr("id");t.removeAttr("id"),s.attr("id",i||n.__getUniqueId()),t.hasClass(a.vertical)&&(t.removeClass(n.conf.classNames.vertical),s.add(s.parent()).addClass(a.vertical)),l=l.add(s);var r=s.children().first(),d=s.children().last();r.is("."+a.listview)&&r.addClass(a.first),d.is("."+a.listview)&&d.addClass(a.last)});var d=e("."+a.panel,this.$menu);l.each(function(){var t=e(this),s=t.parent(),l=s.children("a, span").first();if(s.is("."+a.menu)||(s.data(i.sub,t),t.data(i.parent,s)),!s.children("."+a.next).length&&s.parent().is("."+a.listview)){var r=t.attr("id"),d=e('<a class="'+a.next+'" href="#'+r+'" data-target="#'+r+'" />').insertBefore(l);l.is("span")&&d.addClass(a.fullsubopen)}if(!t.children("."+a.navbar).length&&!s.hasClass(a.vertical)){if(s.parent().is("."+a.listview))var s=s.closest("."+a.panel);else var l=s.closest("."+a.panel).find('a[href="#'+t.attr("id")+'"]').first(),s=l.closest("."+a.panel);var o=e('<div class="'+a.navbar+'" />');if(s.length){var r=s.attr("id");switch(n.opts.navbar.titleLink){case"anchor":_url=l.attr("href");break;case"panel":case"parent":_url="#"+r;break;case"none":default:_url=!1}o.append('<a class="'+a.btn+" "+a.prev+'" href="#'+r+'" data-target="#'+r+'"></a>').append('<a class="'+a.title+'"'+(_url?' href="'+_url+'"':"")+">"+l.text()+"</a>").prependTo(t),t.addClass(a.hasnavbar)}else n.opts.navbar.title&&(o.append('<a class="'+a.title+'">'+n.opts.navbar.title+"</a>").prependTo(t),t.addClass(a.hasnavbar))}});var o=this.__findAddBack(t,"."+a.listview).children("."+a.selected).removeClass(a.selected).last().addClass(a.selected);o.add(o.parentsUntil("."+a.menu,"li")).filter("."+a.vertical).addClass(a.opened).end().not("."+a.vertical).each(function(){e(this).parentsUntil("."+a.menu,"."+a.panel).not("."+a.vertical).first().addClass(a.opened).parentsUntil("."+a.menu,"."+a.panel).not("."+a.vertical).first().addClass(a.opened).addClass(a.subopened)}),o.children("."+a.panel).not("."+a.vertical).addClass(a.opened).parentsUntil("."+a.menu,"."+a.panel).not("."+a.vertical).first().addClass(a.opened).addClass(a.subopened);var c=d.filter("."+a.opened);return c.length||(c=l.first()),c.addClass(a.opened).last().addClass(a.current),l.not("."+a.vertical).not(c.last()).addClass(a.hidden).end().appendTo(this.$menu),l},_initAnchors:function(){var t=this;r.$body.on(l.click+"-oncanvas","a[href]",function(s){var i=e(this),l=!1,d=t.$menu.find(i).length;for(var o in e[n].addons)if(l=e[n].addons[o].clickAnchor.call(t,i,d))break;if(!l&&d){var c=i.attr("href");if(c.length>1&&"#"==c.slice(0,1)){var h=e(c,t.$menu);h.is("."+a.panel)&&(l=!0,t[i.parent().hasClass(a.vertical)?"togglePanel":"openPanel"](h))}}if(l&&s.preventDefault(),!l&&d&&i.is("."+a.listview+" > li > a")&&!i.is('[rel="external"]')&&!i.is('[target="_blank"]')){t.__valueOrFn(t.opts.onClick.setSelected,i)&&t.setSelected(e(s.target).parent());var u=t.__valueOrFn(t.opts.onClick.preventDefault,i,"#"==c.slice(0,1));u&&s.preventDefault(),t.__valueOrFn(t.opts.onClick.blockUI,i,!u)&&r.$html.addClass(a.blocking),t.__valueOrFn(t.opts.onClick.close,i,u)&&t.close()}})},_initAddons:function(){for(var t in e[n].addons)e[n].addons[t].add.call(this),e[n].addons[t].add=function(){};for(var t in e[n].addons)e[n].addons[t].setup.call(this)},__api:function(){var t=this,n={};return e.each(this._api,function(){var e=this;n[e]=function(){var s=t[e].apply(t,arguments);return"undefined"==typeof s?n:s}}),n},__valueOrFn:function(e,t,n){return"function"==typeof e?e.call(t[0]):"undefined"==typeof e&&"undefined"!=typeof n?n:e},__refactorClass:function(e,t,n){return e.filter("."+t).removeClass(t).addClass(a[n])},__findAddBack:function(e,t){return e.find(t).add(e.filter(t))},__filterListItems:function(e){return e.not("."+a.divider).not("."+a.hidden)},__transitionend:function(e,t,n){var s=!1,a=function(){s||t.call(e[0]),s=!0};e.one(l.transitionend,a),e.one(l.webkitTransitionEnd,a),setTimeout(a,1.1*n)},__getUniqueId:function(){return a.mm(e[n].uniqueId++)}},e.fn[n]=function(s,a){return t(),s=e.extend(!0,{},e[n].defaults,s),a=e.extend(!0,{},e[n].configuration,a),this.each(function(){var t=e(this);if(!t.data(n)){var i=new e[n](t,s,a);t.data(n,i.__api())}})},e[n].support={touch:"ontouchstart"in window||navigator.msMaxTouchPoints};var a,i,l,r}}(jQuery);
+/*	
+ * jQuery mmenu offCanvas addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-
-
-(function (factory) {
-    if (typeof define === 'function' && define.amd && define.amd.jQuery) {
-        // AMD. Register as anonymous module.
-        define(['jquery'], factory);
-    } else {
-        // Browser globals.
-        factory(jQuery);
-    }
-}(function ($) {
-	"use strict";
-
-	//Constants
-	var LEFT = "left",
-		RIGHT = "right",
-		UP = "up",
-		DOWN = "down",
-		IN = "in",
-		OUT = "out",
-
-		NONE = "none",
-		AUTO = "auto",
-		
-		SWIPE = "swipe",
-		PINCH = "pinch",
-		TAP = "tap",
-		DOUBLE_TAP = "doubletap",
-		LONG_TAP = "longtap",
-		HOLD = "hold",
-		
-		HORIZONTAL = "horizontal",
-		VERTICAL = "vertical",
-
-		ALL_FINGERS = "all",
-		
-		DOUBLE_TAP_THRESHOLD = 10,
-
-		PHASE_START = "start",
-		PHASE_MOVE = "move",
-		PHASE_END = "end",
-		PHASE_CANCEL = "cancel",
-
-		SUPPORTS_TOUCH = 'ontouchstart' in window,
-		
-		SUPPORTS_POINTER_IE10 = window.navigator.msPointerEnabled && !window.navigator.pointerEnabled,
-		
-		SUPPORTS_POINTER = window.navigator.pointerEnabled || window.navigator.msPointerEnabled,
-
-		PLUGIN_NS = 'TouchSwipe';
-
-
-
-	/**
-	* The default configuration, and available options to configure touch swipe with.
-	* You can set the default values by updating any of the properties prior to instantiation.
-	* @name $.fn.swipe.defaults
-	* @namespace
-	* @property {int} [fingers=1] The number of fingers to detect in a swipe. Any swipes that do not meet this requirement will NOT trigger swipe handlers.
-	* @property {int} [threshold=75] The number of pixels that the user must move their finger by before it is considered a swipe. 
-	* @property {int} [cancelThreshold=null] The number of pixels that the user must move their finger back from the original swipe direction to cancel the gesture.
-	* @property {int} [pinchThreshold=20] The number of pixels that the user must pinch their finger by before it is considered a pinch. 
-	* @property {int} [maxTimeThreshold=null] Time, in milliseconds, between touchStart and touchEnd must NOT exceed in order to be considered a swipe. 
-	* @property {int} [fingerReleaseThreshold=250] Time in milliseconds between releasing multiple fingers.  If 2 fingers are down, and are released one after the other, if they are within this threshold, it counts as a simultaneous release. 
-	* @property {int} [longTapThreshold=500] Time in milliseconds between tap and release for a long tap
-	* @property {int} [doubleTapThreshold=200] Time in milliseconds between 2 taps to count as a double tap
-	* @property {function} [swipe=null] A handler to catch all swipes. See {@link $.fn.swipe#event:swipe}
-	* @property {function} [swipeLeft=null] A handler that is triggered for "left" swipes. See {@link $.fn.swipe#event:swipeLeft}
-	* @property {function} [swipeRight=null] A handler that is triggered for "right" swipes. See {@link $.fn.swipe#event:swipeRight}
-	* @property {function} [swipeUp=null] A handler that is triggered for "up" swipes. See {@link $.fn.swipe#event:swipeUp}
-	* @property {function} [swipeDown=null] A handler that is triggered for "down" swipes. See {@link $.fn.swipe#event:swipeDown}
-	* @property {function} [swipeStatus=null] A handler triggered for every phase of the swipe. See {@link $.fn.swipe#event:swipeStatus}
-	* @property {function} [pinchIn=null] A handler triggered for pinch in events. See {@link $.fn.swipe#event:pinchIn}
-	* @property {function} [pinchOut=null] A handler triggered for pinch out events. See {@link $.fn.swipe#event:pinchOut}
-	* @property {function} [pinchStatus=null] A handler triggered for every phase of a pinch. See {@link $.fn.swipe#event:pinchStatus}
-	* @property {function} [tap=null] A handler triggered when a user just taps on the item, rather than swipes it. If they do not move, tap is triggered, if they do move, it is not. 
-	* @property {function} [doubleTap=null] A handler triggered when a user double taps on the item. The delay between taps can be set with the doubleTapThreshold property. See {@link $.fn.swipe.defaults#doubleTapThreshold}
-	* @property {function} [longTap=null] A handler triggered when a user long taps on the item. The delay between start and end can be set with the longTapThreshold property. See {@link $.fn.swipe.defaults#longTapThreshold}
-	* @property (function) [hold=null] A handler triggered when a user reaches longTapThreshold on the item. See {@link $.fn.swipe.defaults#longTapThreshold}
-	* @property {boolean} [triggerOnTouchEnd=true] If true, the swipe events are triggered when the touch end event is received (user releases finger).  If false, it will be triggered on reaching the threshold, and then cancel the touch event automatically. 
-	* @property {boolean} [triggerOnTouchLeave=false] If true, then when the user leaves the swipe object, the swipe will end and trigger appropriate handlers. 
-	* @property {string|undefined} [allowPageScroll='auto'] How the browser handles page scrolls when the user is swiping on a touchSwipe object. See {@link $.fn.swipe.pageScroll}.  <br/><br/>
-										<code>"auto"</code> : all undefined swipes will cause the page to scroll in that direction. <br/>
-										<code>"none"</code> : the page will not scroll when user swipes. <br/>
-										<code>"horizontal"</code> : will force page to scroll on horizontal swipes. <br/>
-										<code>"vertical"</code> : will force page to scroll on vertical swipes. <br/>
-	* @property {boolean} [fallbackToMouseEvents=true] If true mouse events are used when run on a non touch device, false will stop swipes being triggered by mouse events on non tocuh devices. 
-	* @property {string} [excludedElements="button, input, select, textarea, a, .noSwipe"] A jquery selector that specifies child elements that do NOT trigger swipes. By default this excludes all form, input, select, button, anchor and .noSwipe elements. 
-	* @property {boolean} [preventDefaultEvents=true] by default default events are cancelled, so the page doesn't move.  You can dissable this so both native events fire as well as your handlers. 
-	
-	*/
-	var defaults = {
-		fingers: 1, 		
-		threshold: 75, 	
-		cancelThreshold:null,	
-		pinchThreshold:20,
-		maxTimeThreshold: null, 
-		fingerReleaseThreshold:250, 
-		longTapThreshold:500,
-		doubleTapThreshold:200,
-		swipe: null, 		
-		swipeLeft: null, 	
-		swipeRight: null, 	
-		swipeUp: null, 		
-		swipeDown: null, 	
-		swipeStatus: null, 	
-		pinchIn:null,		
-		pinchOut:null,		
-		pinchStatus:null,	
-		click:null, //Deprecated since 1.6.2
-		tap:null,
-		doubleTap:null,
-		longTap:null, 		
-		hold:null, 
-		triggerOnTouchEnd: true, 
-		triggerOnTouchLeave:false, 
-		allowPageScroll: "auto", 
-		fallbackToMouseEvents: true,	
-		excludedElements:"label, button, input, select, textarea, a, .noSwipe",
-		preventDefaultEvents:true
-	};
-
-
-
-	/**
-	* Applies TouchSwipe behaviour to one or more jQuery objects.
-	* The TouchSwipe plugin can be instantiated via this method, or methods within 
-	* TouchSwipe can be executed via this method as per jQuery plugin architecture.
-	* @see TouchSwipe
-	* @class
-	* @param {Mixed} method If the current DOMNode is a TouchSwipe object, and <code>method</code> is a TouchSwipe method, then
-	* the <code>method</code> is executed, and any following arguments are passed to the TouchSwipe method.
-	* If <code>method</code> is an object, then the TouchSwipe class is instantiated on the current DOMNode, passing the 
-	* configuration properties defined in the object. See TouchSwipe
-	*
-	*/
-	$.fn.swipe = function (method) {
-		var $this = $(this),
-			plugin = $this.data(PLUGIN_NS);
-
-		//Check if we are already instantiated and trying to execute a method	
-		if (plugin && typeof method === 'string') {
-			if (plugin[method]) {
-				return plugin[method].apply(this, Array.prototype.slice.call(arguments, 1));
-			} else {
-				$.error('Method ' + method + ' does not exist on jQuery.swipe');
-			}
-		}
-		//Else not instantiated and trying to pass init object (or nothing)
-		else if (!plugin && (typeof method === 'object' || !method)) {
-			return init.apply(this, arguments);
-		}
-
-		return $this;
-	};
-
-	//Expose our defaults so a user could override the plugin defaults
-	$.fn.swipe.defaults = defaults;
-
-	/**
-	* The phases that a touch event goes through.  The <code>phase</code> is passed to the event handlers. 
-	* These properties are read only, attempting to change them will not alter the values passed to the event handlers.
-	* @namespace
-	* @readonly
-	* @property {string} PHASE_START Constant indicating the start phase of the touch event. Value is <code>"start"</code>.
-	* @property {string} PHASE_MOVE Constant indicating the move phase of the touch event. Value is <code>"move"</code>.
-	* @property {string} PHASE_END Constant indicating the end phase of the touch event. Value is <code>"end"</code>.
-	* @property {string} PHASE_CANCEL Constant indicating the cancel phase of the touch event. Value is <code>"cancel"</code>.
-	*/
-	$.fn.swipe.phases = {
-		PHASE_START: PHASE_START,
-		PHASE_MOVE: PHASE_MOVE,
-		PHASE_END: PHASE_END,
-		PHASE_CANCEL: PHASE_CANCEL
-	};
-
-	/**
-	* The direction constants that are passed to the event handlers. 
-	* These properties are read only, attempting to change them will not alter the values passed to the event handlers.
-	* @namespace
-	* @readonly
-	* @property {string} LEFT Constant indicating the left direction. Value is <code>"left"</code>.
-	* @property {string} RIGHT Constant indicating the right direction. Value is <code>"right"</code>.
-	* @property {string} UP Constant indicating the up direction. Value is <code>"up"</code>.
-	* @property {string} DOWN Constant indicating the down direction. Value is <code>"cancel"</code>.
-	* @property {string} IN Constant indicating the in direction. Value is <code>"in"</code>.
-	* @property {string} OUT Constant indicating the out direction. Value is <code>"out"</code>.
-	*/
-	$.fn.swipe.directions = {
-		LEFT: LEFT,
-		RIGHT: RIGHT,
-		UP: UP,
-		DOWN: DOWN,
-		IN : IN,
-		OUT: OUT
-	};
-	
-	/**
-	* The page scroll constants that can be used to set the value of <code>allowPageScroll</code> option
-	* These properties are read only
-	* @namespace
-	* @readonly
-	* @see $.fn.swipe.defaults#allowPageScroll
-	* @property {string} NONE Constant indicating no page scrolling is allowed. Value is <code>"none"</code>.
-	* @property {string} HORIZONTAL Constant indicating horizontal page scrolling is allowed. Value is <code>"horizontal"</code>.
-	* @property {string} VERTICAL Constant indicating vertical page scrolling is allowed. Value is <code>"vertical"</code>.
-	* @property {string} AUTO Constant indicating either horizontal or vertical will be allowed, depending on the swipe handlers registered. Value is <code>"auto"</code>.
-	*/
-	$.fn.swipe.pageScroll = {
-		NONE: NONE,
-		HORIZONTAL: HORIZONTAL,
-		VERTICAL: VERTICAL,
-		AUTO: AUTO
-	};
-
-	/**
-	* Constants representing the number of fingers used in a swipe.  These are used to set both the value of <code>fingers</code> in the 
-	* options object, as well as the value of the <code>fingers</code> event property.
-	* These properties are read only, attempting to change them will not alter the values passed to the event handlers.
-	* @namespace
-	* @readonly
-	* @see $.fn.swipe.defaults#fingers
-	* @property {string} ONE Constant indicating 1 finger is to be detected / was detected. Value is <code>1</code>.
-	* @property {string} TWO Constant indicating 2 fingers are to be detected / were detected. Value is <code>1</code>.
-	* @property {string} THREE Constant indicating 3 finger are to be detected / were detected. Value is <code>1</code>.
-	* @property {string} ALL Constant indicating any combination of finger are to be detected.  Value is <code>"all"</code>.
-	*/
-	$.fn.swipe.fingers = {
-		ONE: 1,
-		TWO: 2,
-		THREE: 3,
-		ALL: ALL_FINGERS
-	};
-
-	/**
-	* Initialise the plugin for each DOM element matched
-	* This creates a new instance of the main TouchSwipe class for each DOM element, and then
-	* saves a reference to that instance in the elements data property.
-	* @internal
-	*/
-	function init(options) {
-		//Prep and extend the options
-		if (options && (options.allowPageScroll === undefined && (options.swipe !== undefined || options.swipeStatus !== undefined))) {
-			options.allowPageScroll = NONE;
-		}
-		
-        //Check for deprecated options
-		//Ensure that any old click handlers are assigned to the new tap, unless we have a tap
-		if(options.click!==undefined && options.tap===undefined) {
-		    options.tap = options.click;
-		}
-
-		if (!options) {
-			options = {};
-		}
-		
-        //pass empty object so we dont modify the defaults
-		options = $.extend({}, $.fn.swipe.defaults, options);
-
-		//For each element instantiate the plugin
-		return this.each(function () {
-			var $this = $(this);
-
-			//Check we havent already initialised the plugin
-			var plugin = $this.data(PLUGIN_NS);
-
-			if (!plugin) {
-				plugin = new TouchSwipe(this, options);
-				$this.data(PLUGIN_NS, plugin);
-			}
-		});
-	}
-
-	/**
-	* Main TouchSwipe Plugin Class.
-	* Do not use this to construct your TouchSwipe object, use the jQuery plugin method $.fn.swipe(); {@link $.fn.swipe}
-	* @private
-	* @name TouchSwipe
-	* @param {DOMNode} element The HTML DOM object to apply to plugin to
-	* @param {Object} options The options to configure the plugin with.  @link {$.fn.swipe.defaults}
-	* @see $.fh.swipe.defaults
-	* @see $.fh.swipe
-    * @class
-	*/
-	function TouchSwipe(element, options) {
-        var useTouchEvents = (SUPPORTS_TOUCH || SUPPORTS_POINTER || !options.fallbackToMouseEvents),
-            START_EV = useTouchEvents ? (SUPPORTS_POINTER ? (SUPPORTS_POINTER_IE10 ? 'MSPointerDown' : 'pointerdown') : 'touchstart') : 'mousedown',
-            MOVE_EV = useTouchEvents ? (SUPPORTS_POINTER ? (SUPPORTS_POINTER_IE10 ? 'MSPointerMove' : 'pointermove') : 'touchmove') : 'mousemove',
-            END_EV = useTouchEvents ? (SUPPORTS_POINTER ? (SUPPORTS_POINTER_IE10 ? 'MSPointerUp' : 'pointerup') : 'touchend') : 'mouseup',
-            LEAVE_EV = useTouchEvents ? null : 'mouseleave', //we manually detect leave on touch devices, so null event here
-            CANCEL_EV = (SUPPORTS_POINTER ? (SUPPORTS_POINTER_IE10 ? 'MSPointerCancel' : 'pointercancel') : 'touchcancel');
-
-
-
-		//touch properties
-		var distance = 0,
-			direction = null,
-			duration = 0,
-			startTouchesDistance = 0,
-			endTouchesDistance = 0,
-			pinchZoom = 1,
-			pinchDistance = 0,
-			pinchDirection = 0,
-			maximumsMap=null;
-
-		
-		
-		//jQuery wrapped element for this instance
-		var $element = $(element);
-		
-		//Current phase of th touch cycle
-		var phase = "start";
-
-		// the current number of fingers being used.
-		var fingerCount = 0; 			
-
-		//track mouse points / delta
-		var fingerData=null;
-
-		//track times
-		var startTime = 0,
-			endTime = 0,
-			previousTouchEndTime=0,
-			previousTouchFingerCount=0,
-			doubleTapStartTime=0;
-
-		//Timeouts
-		var singleTapTimeout=null,
-			holdTimeout=null;
-        
-		// Add gestures to all swipable areas if supported
-		try {
-			$element.bind(START_EV, touchStart);
-			$element.bind(CANCEL_EV, touchCancel);
-		}
-		catch (e) {
-			$.error('events not supported ' + START_EV + ',' + CANCEL_EV + ' on jQuery.swipe');
-		}
-
-		//
-		//Public methods
-		//
-		
-		/**
-		* re-enables the swipe plugin with the previous configuration
-		* @function
-		* @name $.fn.swipe#enable
-		* @return {DOMNode} The Dom element that was registered with TouchSwipe 
-		* @example $("#element").swipe("enable");
-		*/
-		this.enable = function () {
-			$element.bind(START_EV, touchStart);
-			$element.bind(CANCEL_EV, touchCancel);
-			return $element;
-		};
-
-		/**
-		* disables the swipe plugin
-		* @function
-		* @name $.fn.swipe#disable
-		* @return {DOMNode} The Dom element that is now registered with TouchSwipe
-	    * @example $("#element").swipe("disable");
-		*/
-		this.disable = function () {
-			removeListeners();
-			return $element;
-		};
-
-		/**
-		* Destroy the swipe plugin completely. To use any swipe methods, you must re initialise the plugin.
-		* @function
-		* @name $.fn.swipe#destroy
-		* @example $("#element").swipe("destroy");
-		*/
-		this.destroy = function () {
-			removeListeners();
-			$element.data(PLUGIN_NS, null);
-			$element = null;
-		};
-
-		
-        /**
-         * Allows run time updating of the swipe configuration options.
-         * @function
-    	 * @name $.fn.swipe#option
-    	 * @param {String} property The option property to get or set
-         * @param {Object} [value] The value to set the property to
-		 * @return {Object} If only a property name is passed, then that property value is returned.
-		 * @example $("#element").swipe("option", "threshold"); // return the threshold
-         * @example $("#element").swipe("option", "threshold", 100); // set the threshold after init
-         * @see $.fn.swipe.defaults
-         *
-         */
-        this.option = function (property, value) {
-            if(options[property]!==undefined) {
-                if(value===undefined) {
-                    return options[property];
-                } else {
-                    options[property] = value;
-                }
-            } else {
-                $.error('Option ' + property + ' does not exist on jQuery.swipe.options');
-            }
-
-            return null;
-        }
-
-		//
-		// Private methods
-		//
-		
-		//
-		// EVENTS
-		//
-		/**
-		* Event handler for a touch start event.
-		* Stops the default click event from triggering and stores where we touched
-		* @inner
-		* @param {object} jqEvent The normalised jQuery event object.
-		*/
-		function touchStart(jqEvent) {
-			//If we already in a touch event (a finger already in use) then ignore subsequent ones..
-			if( getTouchInProgress() )
-				return;
-			
-			//Check if this element matches any in the excluded elements selectors,  or its parent is excluded, if so, DON'T swipe
-			if( $(jqEvent.target).closest( options.excludedElements, $element ).length>0 ) 
-				return;
-				
-			//As we use Jquery bind for events, we need to target the original event object
-			//If these events are being programmatically triggered, we don't have an original event object, so use the Jq one.
-			var event = jqEvent.originalEvent ? jqEvent.originalEvent : jqEvent;
-			
-			var ret,
-				evt = SUPPORTS_TOUCH ? event.touches[0] : event;
-
-			phase = PHASE_START;
-
-			//If we support touches, get the finger count
-			if (SUPPORTS_TOUCH) {
-				// get the total number of fingers touching the screen
-				fingerCount = event.touches.length;
-			}
-			//Else this is the desktop, so stop the browser from dragging content
-			else {
-				jqEvent.preventDefault(); //call this on jq event so we are cross browser
-			}
-
-			//clear vars..
-			distance = 0;
-			direction = null;
-			pinchDirection=null;
-			duration = 0;
-			startTouchesDistance=0;
-			endTouchesDistance=0;
-			pinchZoom = 1;
-			pinchDistance = 0;
-			fingerData=createAllFingerData();
-			maximumsMap=createMaximumsData();
-			cancelMultiFingerRelease();
-
-			
-			// check the number of fingers is what we are looking for, or we are capturing pinches
-			if (!SUPPORTS_TOUCH || (fingerCount === options.fingers || options.fingers === ALL_FINGERS) || hasPinches()) {
-				// get the coordinates of the touch
-				createFingerData( 0, evt );
-				startTime = getTimeStamp();
-				
-				if(fingerCount==2) {
-					//Keep track of the initial pinch distance, so we can calculate the diff later
-					//Store second finger data as start
-					createFingerData( 1, event.touches[1] );
-					startTouchesDistance = endTouchesDistance = calculateTouchesDistance(fingerData[0].start, fingerData[1].start);
-				}
-				
-				if (options.swipeStatus || options.pinchStatus) {
-					ret = triggerHandler(event, phase);
-				}
-			}
-			else {
-				//A touch with more or less than the fingers we are looking for, so cancel
-				ret = false; 
-			}
-
-			//If we have a return value from the users handler, then return and cancel
-			if (ret === false) {
-				phase = PHASE_CANCEL;
-				triggerHandler(event, phase);
-				return ret;
-			}
-			else {
-				if (options.hold) {
-					holdTimeout = setTimeout($.proxy(function() {
-						//Trigger the event
-						$element.trigger('hold', [event.target]);
-						//Fire the callback
-						if(options.hold) {
-							ret = options.hold.call($element, event, event.target);
-						}
-					}, this), options.longTapThreshold );
-				}
-
-				setTouchInProgress(true);
-			}
-
-            return null;
-		};
-		
-		
-		
-		/**
-		* Event handler for a touch move event. 
-		* If we change fingers during move, then cancel the event
-		* @inner
-		* @param {object} jqEvent The normalised jQuery event object.
-		*/
-		function touchMove(jqEvent) {
-			
-			//As we use Jquery bind for events, we need to target the original event object
-			//If these events are being programmatically triggered, we don't have an original event object, so use the Jq one.
-			var event = jqEvent.originalEvent ? jqEvent.originalEvent : jqEvent;
-			
-			//If we are ending, cancelling, or within the threshold of 2 fingers being released, don't track anything..
-			if (phase === PHASE_END || phase === PHASE_CANCEL || inMultiFingerRelease())
-				return;
-
-			var ret,
-				evt = SUPPORTS_TOUCH ? event.touches[0] : event;
-			
-
-			//Update the  finger data 
-			var currentFinger = updateFingerData(evt);
-			endTime = getTimeStamp();
-			
-			if (SUPPORTS_TOUCH) {
-				fingerCount = event.touches.length;
-			}
-
-			if (options.hold)
-				clearTimeout(holdTimeout);
-
-			phase = PHASE_MOVE;
-
-			//If we have 2 fingers get Touches distance as well
-			if(fingerCount==2) {
-				
-				//Keep track of the initial pinch distance, so we can calculate the diff later
-				//We do this here as well as the start event, in case they start with 1 finger, and the press 2 fingers
-				if(startTouchesDistance==0) {
-					//Create second finger if this is the first time...
-					createFingerData( 1, event.touches[1] );
-					
-					startTouchesDistance = endTouchesDistance = calculateTouchesDistance(fingerData[0].start, fingerData[1].start);
-				} else {
-					//Else just update the second finger
-					updateFingerData(event.touches[1]);
-				
-					endTouchesDistance = calculateTouchesDistance(fingerData[0].end, fingerData[1].end);
-					pinchDirection = calculatePinchDirection(fingerData[0].end, fingerData[1].end);
-				}
-				
-				
-				pinchZoom = calculatePinchZoom(startTouchesDistance, endTouchesDistance);
-				pinchDistance = Math.abs(startTouchesDistance - endTouchesDistance);
-			}
-			
-			
-			
-
-			if ( (fingerCount === options.fingers || options.fingers === ALL_FINGERS) || !SUPPORTS_TOUCH || hasPinches() ) {
-				
-				direction = calculateDirection(currentFinger.start, currentFinger.end);
-				
-				//Check if we need to prevent default event (page scroll / pinch zoom) or not
-				validateDefaultEvent(jqEvent, direction);
-
-				//Distance and duration are all off the main finger
-				distance = calculateDistance(currentFinger.start, currentFinger.end);
-				duration = calculateDuration();
-
-                //Cache the maximum distance we made in this direction
-                setMaxDistance(direction, distance);
-
-
-				if (options.swipeStatus || options.pinchStatus) {
-					ret = triggerHandler(event, phase);
-				}
-				
-				
-				//If we trigger end events when threshold are met, or trigger events when touch leaves element
-				if(!options.triggerOnTouchEnd || options.triggerOnTouchLeave) {
-					
-					var inBounds = true;
-					
-					//If checking if we leave the element, run the bounds check (we can use touchleave as its not supported on webkit)
-					if(options.triggerOnTouchLeave) {
-						var bounds = getbounds( this );
-						inBounds = isInBounds( currentFinger.end, bounds );
-					}
-					
-					//Trigger end handles as we swipe if thresholds met or if we have left the element if the user has asked to check these..
-					if(!options.triggerOnTouchEnd && inBounds) {
-						phase = getNextPhase( PHASE_MOVE );
-					} 
-					//We end if out of bounds here, so set current phase to END, and check if its modified 
-					else if(options.triggerOnTouchLeave && !inBounds ) {
-						phase = getNextPhase( PHASE_END );
-					}
-						
-					if(phase==PHASE_CANCEL || phase==PHASE_END)	{
-						triggerHandler(event, phase);
-					}				
-				}
-			}
-			else {
-				phase = PHASE_CANCEL;
-				triggerHandler(event, phase);
-			}
-
-			if (ret === false) {
-				phase = PHASE_CANCEL;
-				triggerHandler(event, phase);
-			}
-		}
-
-
-
-		/**
-		* Event handler for a touch end event. 
-		* Calculate the direction and trigger events
-		* @inner
-		* @param {object} jqEvent The normalised jQuery event object.
-		*/
-		function touchEnd(jqEvent) {
-			//As we use Jquery bind for events, we need to target the original event object
-			var event = jqEvent.originalEvent;
-				
-
-			//If we are still in a touch with another finger return
-			//This allows us to wait a fraction and see if the other finger comes up, if it does within the threshold, then we treat it as a multi release, not a single release.
-			if (SUPPORTS_TOUCH) {
-				if(event.touches.length>0) {
-					startMultiFingerRelease();
-					return true;
-				}
-			}
-			
-			//If a previous finger has been released, check how long ago, if within the threshold, then assume it was a multifinger release.
-			//This is used to allow 2 fingers to release fractionally after each other, whilst maintainig the event as containg 2 fingers, not 1
-			if(inMultiFingerRelease()) {	
-				fingerCount=previousTouchFingerCount;
-			}	
-		
-			//Set end of swipe
-			endTime = getTimeStamp();
-			
-			//Get duration incase move was never fired
-			duration = calculateDuration();
-			
-			//If we trigger handlers at end of swipe OR, we trigger during, but they didnt trigger and we are still in the move phase
-			if(didSwipeBackToCancel() || !validateSwipeDistance()) {
-			    phase = PHASE_CANCEL;
-                triggerHandler(event, phase);
-			} else if (options.triggerOnTouchEnd || (options.triggerOnTouchEnd == false && phase === PHASE_MOVE)) {
-				//call this on jq event so we are cross browser 
-				jqEvent.preventDefault(); 
-				phase = PHASE_END;
-                triggerHandler(event, phase);
-			}
-			//Special cases - A tap should always fire on touch end regardless,
-			//So here we manually trigger the tap end handler by itself
-			//We dont run trigger handler as it will re-trigger events that may have fired already
-			else if (!options.triggerOnTouchEnd && hasTap()) {
-                //Trigger the pinch events...
-			    phase = PHASE_END;
-			    triggerHandlerForGesture(event, phase, TAP);
-			}
-			else if (phase === PHASE_MOVE) {
-				phase = PHASE_CANCEL;
-				triggerHandler(event, phase);
-			}
-
-			setTouchInProgress(false);
-
-            return null;
-		}
-
-
-
-		/**
-		* Event handler for a touch cancel event. 
-		* Clears current vars
-		* @inner
-		*/
-		function touchCancel() {
-			// reset the variables back to default values
-			fingerCount = 0;
-			endTime = 0;
-			startTime = 0;
-			startTouchesDistance=0;
-			endTouchesDistance=0;
-			pinchZoom=1;
-			
-			//If we were in progress of tracking a possible multi touch end, then re set it.
-			cancelMultiFingerRelease();
-			
-			setTouchInProgress(false);
-		}
-		
-		
-		/**
-		* Event handler for a touch leave event. 
-		* This is only triggered on desktops, in touch we work this out manually
-		* as the touchleave event is not supported in webkit
-		* @inner
-		*/
-		function touchLeave(jqEvent) {
-			var event = jqEvent.originalEvent;
-			
-			//If we have the trigger on leave property set....
-			if(options.triggerOnTouchLeave) {
-				phase = getNextPhase( PHASE_END );
-				triggerHandler(event, phase);
-			}
-		}
-		
-		/**
-		* Removes all listeners that were associated with the plugin
-		* @inner
-		*/
-		function removeListeners() {
-			$element.unbind(START_EV, touchStart);
-			$element.unbind(CANCEL_EV, touchCancel);
-			$element.unbind(MOVE_EV, touchMove);
-			$element.unbind(END_EV, touchEnd);
-			
-			//we only have leave events on desktop, we manually calculate leave on touch as its not supported in webkit
-			if(LEAVE_EV) { 
-				$element.unbind(LEAVE_EV, touchLeave);
-			}
-			
-			setTouchInProgress(false);
-		}
-
-		
-		/**
-		 * Checks if the time and distance thresholds have been met, and if so then the appropriate handlers are fired.
-		 */
-		function getNextPhase(currentPhase) {
-			
-			var nextPhase = currentPhase;
-			
-			// Ensure we have valid swipe (under time and over distance  and check if we are out of bound...)
-			var validTime = validateSwipeTime();
-			var validDistance = validateSwipeDistance();
-			var didCancel = didSwipeBackToCancel();
-						
-			//If we have exceeded our time, then cancel	
-			if(!validTime || didCancel) {
-				nextPhase = PHASE_CANCEL;
-			}
-			//Else if we are moving, and have reached distance then end
-			else if (validDistance && currentPhase == PHASE_MOVE && (!options.triggerOnTouchEnd || options.triggerOnTouchLeave) ) {
-				nextPhase = PHASE_END;
-			} 
-			//Else if we have ended by leaving and didn't reach distance, then cancel
-			else if (!validDistance && currentPhase==PHASE_END && options.triggerOnTouchLeave) {
-				nextPhase = PHASE_CANCEL;
-			}
-			
-			return nextPhase;
-		}
-		
-		
-		/**
-		* Trigger the relevant event handler
-		* The handlers are passed the original event, the element that was swiped, and in the case of the catch all handler, the direction that was swiped, "left", "right", "up", or "down"
-		* @param {object} event the original event object
-		* @param {string} phase the phase of the swipe (start, end cancel etc) {@link $.fn.swipe.phases}
-		* @inner
-		*/
-		function triggerHandler(event, phase) {
-			
-			var ret = undefined;
-			
-			//Swipes and pinches are not mutually exclusive - can happend at same time, so need to trigger 2 events potentially
-			if( (didSwipe() || hasSwipes()) || (didPinch() || hasPinches()) ) {
-				// SWIPE GESTURES
-				if(didSwipe() || hasSwipes()) { //hasSwipes as status needs to fire even if swipe is invalid
-					//Trigger the swipe events...
-					ret = triggerHandlerForGesture(event, phase, SWIPE);
-				}	
-
-				// PINCH GESTURES (if the above didn't cancel)
-				if((didPinch() || hasPinches()) && ret!==false) {
-					//Trigger the pinch events...
-					ret = triggerHandlerForGesture(event, phase, PINCH);
-				}
-			} else {
-			 
-				// CLICK / TAP (if the above didn't cancel)
-				if(didDoubleTap() && ret!==false) {
-					//Trigger the tap events...
-					ret = triggerHandlerForGesture(event, phase, DOUBLE_TAP);
-				}
-				
-				// CLICK / TAP (if the above didn't cancel)
-				else if(didLongTap() && ret!==false) {
-					//Trigger the tap events...
-					ret = triggerHandlerForGesture(event, phase, LONG_TAP);
-				}
-
-				// CLICK / TAP (if the above didn't cancel)
-				else if(didTap() && ret!==false) {
-					//Trigger the tap event..
-					ret = triggerHandlerForGesture(event, phase, TAP);
-				}
-			}
-			
-			
-			
-			// If we are cancelling the gesture, then manually trigger the reset handler
-			if (phase === PHASE_CANCEL) {
-				touchCancel(event);
-			}
-			
-			// If we are ending the gesture, then manually trigger the reset handler IF all fingers are off
-			if(phase === PHASE_END) {
-				//If we support touch, then check that all fingers are off before we cancel
-				if (SUPPORTS_TOUCH) {
-					if(event.touches.length==0) {
-						touchCancel(event);	
-					}
-				} 
-				else {
-					touchCancel(event);
-				}
-			}
-					
-			return ret;
-		}
-		
-		
-		
-		/**
-		* Trigger the relevant event handler
-		* The handlers are passed the original event, the element that was swiped, and in the case of the catch all handler, the direction that was swiped, "left", "right", "up", or "down"
-		* @param {object} event the original event object
-		* @param {string} phase the phase of the swipe (start, end cancel etc) {@link $.fn.swipe.phases}
-		* @param {string} gesture the gesture to trigger a handler for : PINCH or SWIPE {@link $.fn.swipe.gestures}
-		* @return Boolean False, to indicate that the event should stop propagation, or void.
-		* @inner
-		*/
-		function triggerHandlerForGesture(event, phase, gesture) {	
-			
-			var ret=undefined;
-			
-			//SWIPES....
-			if(gesture==SWIPE) {
-				//Trigger status every time..
-				
-				//Trigger the event...
-				$element.trigger('swipeStatus', [phase, direction || null, distance || 0, duration || 0, fingerCount, fingerData]);
-				
-				//Fire the callback
-				if (options.swipeStatus) {
-					ret = options.swipeStatus.call($element, event, phase, direction || null, distance || 0, duration || 0, fingerCount, fingerData);
-					//If the status cancels, then dont run the subsequent event handlers..
-					if(ret===false) return false;
-				}
-				
-				
-				
-				
-				if (phase == PHASE_END && validateSwipe()) {
-					//Fire the catch all event
-					$element.trigger('swipe', [direction, distance, duration, fingerCount, fingerData]);
-					
-					//Fire catch all callback
-					if (options.swipe) {
-						ret = options.swipe.call($element, event, direction, distance, duration, fingerCount, fingerData);
-						//If the status cancels, then dont run the subsequent event handlers..
-						if(ret===false) return false;
-					}
-					
-					//trigger direction specific event handlers	
-					switch (direction) {
-						case LEFT:
-							//Trigger the event
-							$element.trigger('swipeLeft', [direction, distance, duration, fingerCount, fingerData]);
-					
-					        //Fire the callback
-							if (options.swipeLeft) {
-								ret = options.swipeLeft.call($element, event, direction, distance, duration, fingerCount, fingerData);
-							}
-							break;
-	
-						case RIGHT:
-							//Trigger the event
-					        $element.trigger('swipeRight', [direction, distance, duration, fingerCount, fingerData]);
-					
-					        //Fire the callback
-							if (options.swipeRight) {
-								ret = options.swipeRight.call($element, event, direction, distance, duration, fingerCount, fingerData);
-							}
-							break;
-	
-						case UP:
-							//Trigger the event
-					        $element.trigger('swipeUp', [direction, distance, duration, fingerCount, fingerData]);
-					
-					        //Fire the callback
-							if (options.swipeUp) {
-								ret = options.swipeUp.call($element, event, direction, distance, duration, fingerCount, fingerData);
-							}
-							break;
-	
-						case DOWN:
-							//Trigger the event
-					        $element.trigger('swipeDown', [direction, distance, duration, fingerCount, fingerData]);
-					
-					        //Fire the callback
-							if (options.swipeDown) {
-								ret = options.swipeDown.call($element, event, direction, distance, duration, fingerCount, fingerData);
-							}
-							break;
-					}
-				}
-			}
-			
-			
-			//PINCHES....
-			if(gesture==PINCH) {
-				//Trigger the event
-			     $element.trigger('pinchStatus', [phase, pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData]);
-					
-                //Fire the callback
-				if (options.pinchStatus) {
-					ret = options.pinchStatus.call($element, event, phase, pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData);
-					//If the status cancels, then dont run the subsequent event handlers..
-					if(ret===false) return false;
-				}
-				
-				if(phase==PHASE_END && validatePinch()) {
-					
-					switch (pinchDirection) {
-						case IN:
-							//Trigger the event
-                            $element.trigger('pinchIn', [pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData]);
-                    
-                            //Fire the callback
-                            if (options.pinchIn) {
-								ret = options.pinchIn.call($element, event, pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData);
-							}
-							break;
-						
-						case OUT:
-							//Trigger the event
-                            $element.trigger('pinchOut', [pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData]);
-                    
-                            //Fire the callback
-                            if (options.pinchOut) {
-								ret = options.pinchOut.call($element, event, pinchDirection || null, pinchDistance || 0, duration || 0, fingerCount, pinchZoom, fingerData);
-							}
-							break;	
-					}
-				}
-			}
-			
-
-
-                
-	    		
-			if(gesture==TAP) {
-				if(phase === PHASE_CANCEL || phase === PHASE_END) {
-					
-    			    
-    			    //Cancel any existing double tap
-				    clearTimeout(singleTapTimeout);
-    			    //Cancel hold timeout
-				    clearTimeout(holdTimeout);
-				           
-					//If we are also looking for doubelTaps, wait incase this is one...
-				    if(hasDoubleTap() && !inDoubleTap()) {
-				        //Cache the time of this tap
-                        doubleTapStartTime = getTimeStamp();
-                       
-				        //Now wait for the double tap timeout, and trigger this single tap
-				        //if its not cancelled by a double tap
-				        singleTapTimeout = setTimeout($.proxy(function() {
-        			        doubleTapStartTime=null;
-        			        //Trigger the event
-                			$element.trigger('tap', [event.target]);
-
-                        
-                            //Fire the callback
-                            if(options.tap) {
-                                ret = options.tap.call($element, event, event.target);
-                            }
-    			        }, this), options.doubleTapThreshold );
-    			    	
-    			    } else {
-                        doubleTapStartTime=null;
-                        
-                        //Trigger the event
-                        $element.trigger('tap', [event.target]);
-
-                        
-                        //Fire the callback
-                        if(options.tap) {
-                            ret = options.tap.call($element, event, event.target);
-                        }
-	    		    }
-	    		}
-			}
-			
-			else if (gesture==DOUBLE_TAP) {
-				if(phase === PHASE_CANCEL || phase === PHASE_END) {
-					//Cancel any pending singletap 
-				    clearTimeout(singleTapTimeout);
-				    doubleTapStartTime=null;
-				        
-                    //Trigger the event
-                    $element.trigger('doubletap', [event.target]);
-                
-                    //Fire the callback
-                    if(options.doubleTap) {
-                        ret = options.doubleTap.call($element, event, event.target);
-                    }
-	    		}
-			}
-			
-			else if (gesture==LONG_TAP) {
-				if(phase === PHASE_CANCEL || phase === PHASE_END) {
-					//Cancel any pending singletap (shouldnt be one)
-				    clearTimeout(singleTapTimeout);
-				    doubleTapStartTime=null;
-				        
-                    //Trigger the event
-                    $element.trigger('longtap', [event.target]);
-                
-                    //Fire the callback
-                    if(options.longTap) {
-                        ret = options.longTap.call($element, event, event.target);
-                    }
-	    		}
-			}				
-				
-			return ret;
-		}
-
-
-
-		
-		//
-		// GESTURE VALIDATION
-		//
-		
-		/**
-		* Checks the user has swipe far enough
-		* @return Boolean if <code>threshold</code> has been set, return true if the threshold was met, else false.
-		* If no threshold was set, then we return true.
-		* @inner
-		*/
-		function validateSwipeDistance() {
-			var valid = true;
-			//If we made it past the min swipe distance..
-			if (options.threshold !== null) {
-				valid = distance >= options.threshold;
-			}
-			
-            return valid;
-		}
-		
-		/**
-		* Checks the user has swiped back to cancel.
-		* @return Boolean if <code>cancelThreshold</code> has been set, return true if the cancelThreshold was met, else false.
-		* If no cancelThreshold was set, then we return true.
-		* @inner
-		*/
-		function didSwipeBackToCancel() {
-            var cancelled = false;
-    		if(options.cancelThreshold !== null && direction !==null)  {
-    		    cancelled =  (getMaxDistance( direction ) - distance) >= options.cancelThreshold;
-			}
-			
-			return cancelled;
-		}
-
-		/**
-		* Checks the user has pinched far enough
-		* @return Boolean if <code>pinchThreshold</code> has been set, return true if the threshold was met, else false.
-		* If no threshold was set, then we return true.
-		* @inner
-		*/
-		function validatePinchDistance() {
-			if (options.pinchThreshold !== null) {
-				return pinchDistance >= options.pinchThreshold;
-			}
-			return true;
-		}
-
-		/**
-		* Checks that the time taken to swipe meets the minimum / maximum requirements
-		* @return Boolean
-		* @inner
-		*/
-		function validateSwipeTime() {
-			var result;
-			//If no time set, then return true
-
-			if (options.maxTimeThreshold) {
-				if (duration >= options.maxTimeThreshold) {
-					result = false;
-				} else {
-					result = true;
-				}
-			}
-			else {
-				result = true;
-			}
-
-			return result;
-		}
-
-	
-
-		/**
-		* Checks direction of the swipe and the value allowPageScroll to see if we should allow or prevent the default behaviour from occurring.
-		* This will essentially allow page scrolling or not when the user is swiping on a touchSwipe object.
-		* @param {object} jqEvent The normalised jQuery representation of the event object.
-		* @param {string} direction The direction of the event. See {@link $.fn.swipe.directions}
-		* @see $.fn.swipe.directions
-		* @inner
-		*/
-		function validateDefaultEvent(jqEvent, direction) {
-
-			
-			if( options.preventDefaultEvents === false ) {
-				return;
-			}
-
-			if (options.allowPageScroll === NONE) {
-				jqEvent.preventDefault();
-			} else {
-				var auto = options.allowPageScroll === AUTO;
-
-				switch (direction) {
-					case LEFT:
-						if ((options.swipeLeft && auto) || (!auto && options.allowPageScroll != HORIZONTAL)) {
-							jqEvent.preventDefault();
-						}
-						break;
-
-					case RIGHT:
-						if ((options.swipeRight && auto) || (!auto && options.allowPageScroll != HORIZONTAL)) {
-							jqEvent.preventDefault();
-						}
-						break;
-
-					case UP:
-						if ((options.swipeUp && auto) || (!auto && options.allowPageScroll != VERTICAL)) {
-							jqEvent.preventDefault();
-						}
-						break;
-
-					case DOWN:
-						if ((options.swipeDown && auto) || (!auto && options.allowPageScroll != VERTICAL)) {
-							jqEvent.preventDefault();
-						}
-						break;
-				}
-			}
-
-		}
-
-
-		// PINCHES
-		/**
-		 * Returns true of the current pinch meets the thresholds
-		 * @return Boolean
-		 * @inner
-		*/
-		function validatePinch() {
-		    var hasCorrectFingerCount = validateFingers();
-		    var hasEndPoint = validateEndPoint();
-			var hasCorrectDistance = validatePinchDistance();
-			return hasCorrectFingerCount && hasEndPoint && hasCorrectDistance;
-			
-		}
-		
-		/**
-		 * Returns true if any Pinch events have been registered
-		 * @return Boolean
-		 * @inner
-		*/
-		function hasPinches() {
-			//Enure we dont return 0 or null for false values
-			return !!(options.pinchStatus || options.pinchIn || options.pinchOut);
-		}
-		
-		/**
-		 * Returns true if we are detecting pinches, and have one
-		 * @return Boolean
-		 * @inner
-		 */
-		function didPinch() {
-			//Enure we dont return 0 or null for false values
-			return !!(validatePinch() && hasPinches());
-		}
-
-
-
-
-		// SWIPES
-		/**
-		 * Returns true if the current swipe meets the thresholds
-		 * @return Boolean
-		 * @inner
-		*/
-		function validateSwipe() {
-			//Check validity of swipe
-			var hasValidTime = validateSwipeTime();
-			var hasValidDistance = validateSwipeDistance();	
-			var hasCorrectFingerCount = validateFingers();
-		    var hasEndPoint = validateEndPoint();
-		    var didCancel = didSwipeBackToCancel();	
-		    
-			// if the user swiped more than the minimum length, perform the appropriate action
-			// hasValidDistance is null when no distance is set 
-			var valid =  !didCancel && hasEndPoint && hasCorrectFingerCount && hasValidDistance && hasValidTime;
-			
-			return valid;
-		}
-		
-		/**
-		 * Returns true if any Swipe events have been registered
-		 * @return Boolean
-		 * @inner
-		*/
-		function hasSwipes() {
-			//Enure we dont return 0 or null for false values
-			return !!(options.swipe || options.swipeStatus || options.swipeLeft || options.swipeRight || options.swipeUp || options.swipeDown);
-		}
-		
-		
-		/**
-		 * Returns true if we are detecting swipes and have one
-		 * @return Boolean
-		 * @inner
-		*/
-		function didSwipe() {
-			//Enure we dont return 0 or null for false values
-			return !!(validateSwipe() && hasSwipes());
-		}
-
-        /**
-		 * Returns true if we have matched the number of fingers we are looking for
-		 * @return Boolean
-		 * @inner
-		*/
-        function validateFingers() {
-            //The number of fingers we want were matched, or on desktop we ignore
-    		return ((fingerCount === options.fingers || options.fingers === ALL_FINGERS) || !SUPPORTS_TOUCH);
-    	}
-        
-        /**
-		 * Returns true if we have an end point for the swipe
-		 * @return Boolean
-		 * @inner
-		*/
-        function validateEndPoint() {
-            //We have an end value for the finger
-		    return fingerData[0].end.x !== 0;
-        }
-
-		// TAP / CLICK
-		/**
-		 * Returns true if a click / tap events have been registered
-		 * @return Boolean
-		 * @inner
-		*/
-		function hasTap() {
-			//Enure we dont return 0 or null for false values
-			return !!(options.tap) ;
-		}
-		
-		/**
-		 * Returns true if a double tap events have been registered
-		 * @return Boolean
-		 * @inner
-		*/
-		function hasDoubleTap() {
-			//Enure we dont return 0 or null for false values
-			return !!(options.doubleTap) ;
-		}
-		
-		/**
-		 * Returns true if any long tap events have been registered
-		 * @return Boolean
-		 * @inner
-		*/
-		function hasLongTap() {
-			//Enure we dont return 0 or null for false values
-			return !!(options.longTap) ;
-		}
-		
-		/**
-		 * Returns true if we could be in the process of a double tap (one tap has occurred, we are listening for double taps, and the threshold hasn't past.
-		 * @return Boolean
-		 * @inner
-		*/
-		function validateDoubleTap() {
-		    if(doubleTapStartTime==null){
-		        return false;
-		    }
-		    var now = getTimeStamp();
-		    return (hasDoubleTap() && ((now-doubleTapStartTime) <= options.doubleTapThreshold));
-		}
-		
-		/**
-		 * Returns true if we could be in the process of a double tap (one tap has occurred, we are listening for double taps, and the threshold hasn't past.
-		 * @return Boolean
-		 * @inner
-		*/
-		function inDoubleTap() {
-		    return validateDoubleTap();
-		}
-		
-		
-		/**
-		 * Returns true if we have a valid tap
-		 * @return Boolean
-		 * @inner
-		*/
-		function validateTap() {
-		    return ((fingerCount === 1 || !SUPPORTS_TOUCH) && (isNaN(distance) || distance < options.threshold));
-		}
-		
-		/**
-		 * Returns true if we have a valid long tap
-		 * @return Boolean
-		 * @inner
-		*/
-		function validateLongTap() {
-		    //slight threshold on moving finger
-            return ((duration > options.longTapThreshold) && (distance < DOUBLE_TAP_THRESHOLD)); 
-		}
-		
-		/**
-		 * Returns true if we are detecting taps and have one
-		 * @return Boolean
-		 * @inner
-		*/
-		function didTap() {
-		    //Enure we dont return 0 or null for false values
-			return !!(validateTap() && hasTap());
-		}
-		
-		
-		/**
-		 * Returns true if we are detecting double taps and have one
-		 * @return Boolean
-		 * @inner
-		*/
-		function didDoubleTap() {
-		    //Enure we dont return 0 or null for false values
-			return !!(validateDoubleTap() && hasDoubleTap());
-		}
-		
-		/**
-		 * Returns true if we are detecting long taps and have one
-		 * @return Boolean
-		 * @inner
-		*/
-		function didLongTap() {
-		    //Enure we dont return 0 or null for false values
-			return !!(validateLongTap() && hasLongTap());
-		}
-		
-		
-		
-		
-		// MULTI FINGER TOUCH
-		/**
-		 * Starts tracking the time between 2 finger releases, and keeps track of how many fingers we initially had up
-		 * @inner
-		*/
-		function startMultiFingerRelease() {
-			previousTouchEndTime = getTimeStamp();
-			previousTouchFingerCount = event.touches.length+1;
-		}
-		
-		/**
-		 * Cancels the tracking of time between 2 finger releases, and resets counters
-		 * @inner
-		*/
-		function cancelMultiFingerRelease() {
-			previousTouchEndTime = 0;
-			previousTouchFingerCount = 0;
-		}
-		
-		/**
-		 * Checks if we are in the threshold between 2 fingers being released 
-		 * @return Boolean
-		 * @inner
-		*/
-		function inMultiFingerRelease() {
-			
-			var withinThreshold = false;
-			
-			if(previousTouchEndTime) {	
-				var diff = getTimeStamp() - previousTouchEndTime	
-				if( diff<=options.fingerReleaseThreshold ) {
-					withinThreshold = true;
-				}
-			}
-			
-			return withinThreshold;	
-		}
-		
-
-		/**
-		* gets a data flag to indicate that a touch is in progress
-		* @return Boolean
-		* @inner
-		*/
-		function getTouchInProgress() {
-			//strict equality to ensure only true and false are returned
-			return !!($element.data(PLUGIN_NS+'_intouch') === true);
-		}
-		
-		/**
-		* Sets a data flag to indicate that a touch is in progress
-		* @param {boolean} val The value to set the property to
-		* @inner
-		*/
-		function setTouchInProgress(val) {
-			
-			//Add or remove event listeners depending on touch status
-			if(val===true) {
-				$element.bind(MOVE_EV, touchMove);
-				$element.bind(END_EV, touchEnd);
-				
-				//we only have leave events on desktop, we manually calcuate leave on touch as its not supported in webkit
-				if(LEAVE_EV) { 
-					$element.bind(LEAVE_EV, touchLeave);
-				}
-			} else {
-				$element.unbind(MOVE_EV, touchMove, false);
-				$element.unbind(END_EV, touchEnd, false);
-			
-				//we only have leave events on desktop, we manually calcuate leave on touch as its not supported in webkit
-				if(LEAVE_EV) { 
-					$element.unbind(LEAVE_EV, touchLeave, false);
-				}
-			}
-			
-		
-			//strict equality to ensure only true and false can update the value
-			$element.data(PLUGIN_NS+'_intouch', val === true);
-		}
-		
-		
-		/**
-		 * Creates the finger data for the touch/finger in the event object.
-		 * @param {int} index The index in the array to store the finger data (usually the order the fingers were pressed)
-		 * @param {object} evt The event object containing finger data
-		 * @return finger data object
-		 * @inner
-		*/
-		function createFingerData( index, evt ) {
-			var id = evt.identifier!==undefined ? evt.identifier : 0; 
-			
-			fingerData[index].identifier = id;
-			fingerData[index].start.x = fingerData[index].end.x = evt.pageX||evt.clientX;
-			fingerData[index].start.y = fingerData[index].end.y = evt.pageY||evt.clientY;
-			
-			return fingerData[index];
-		}
-		
-		/**
-		 * Updates the finger data for a particular event object
-		 * @param {object} evt The event object containing the touch/finger data to upadte
-		 * @return a finger data object.
-		 * @inner
-		*/
-		function updateFingerData(evt) {
-			
-			var id = evt.identifier!==undefined ? evt.identifier : 0; 
-			var f = getFingerData( id );
-			
-			f.end.x = evt.pageX||evt.clientX;
-			f.end.y = evt.pageY||evt.clientY;
-			
-			return f;
-		}
-		
-		/**
-		 * Returns a finger data object by its event ID.
-		 * Each touch event has an identifier property, which is used 
-		 * to track repeat touches
-		 * @param {int} id The unique id of the finger in the sequence of touch events.
-		 * @return a finger data object.
-		 * @inner
-		*/
-		function getFingerData( id ) {
-			for(var i=0; i<fingerData.length; i++) {
-				if(fingerData[i].identifier == id) {
-					return fingerData[i];	
-				}
-			}
-		}
-		
-		/**
-		 * Creats all the finger onjects and returns an array of finger data
-		 * @return Array of finger objects
-		 * @inner
-		*/
-		function createAllFingerData() {
-			var fingerData=[];
-			for (var i=0; i<=5; i++) {
-				fingerData.push({
-					start:{ x: 0, y: 0 },
-					end:{ x: 0, y: 0 },
-					identifier:0
-				});
-			}
-			
-			return fingerData;
-		}
-		
-		/**
-		 * Sets the maximum distance swiped in the given direction. 
-		 * If the new value is lower than the current value, the max value is not changed.
-		 * @param {string}  direction The direction of the swipe
-		 * @param {int}  distance The distance of the swipe
-		 * @inner
-		*/
-		function setMaxDistance(direction, distance) {
-    		distance = Math.max(distance, getMaxDistance(direction) );
-    		maximumsMap[direction].distance = distance;
-		}
-        
-        /**
-		 * gets the maximum distance swiped in the given direction. 
-		 * @param {string}  direction The direction of the swipe
-		 * @return int  The distance of the swipe
-		 * @inner
-		*/        
-		function getMaxDistance(direction) {
-			if (maximumsMap[direction]) return maximumsMap[direction].distance;
-			return undefined;
-		}
-		
-		/**
-		 * Creats a map of directions to maximum swiped values.
-		 * @return Object A dictionary of maximum values, indexed by direction.
-		 * @inner
-		*/
-		function createMaximumsData() {
-			var maxData={};
-			maxData[LEFT]=createMaximumVO(LEFT);
-			maxData[RIGHT]=createMaximumVO(RIGHT);
-			maxData[UP]=createMaximumVO(UP);
-			maxData[DOWN]=createMaximumVO(DOWN);
-			
-			return maxData;
-		}
-		
-		/**
-		 * Creates a map maximum swiped values for a given swipe direction
-		 * @param {string} The direction that these values will be associated with
-		 * @return Object Maximum values
-		 * @inner
-		*/
-		function createMaximumVO(dir) {
-		    return { 
-		        direction:dir, 
-		        distance:0
-		    }
-		}
-		
-		
-		//
-		// MATHS / UTILS
-		//
-
-		/**
-		* Calculate the duration of the swipe
-		* @return int
-		* @inner
-		*/
-		function calculateDuration() {
-			return endTime - startTime;
-		}
-		
-		/**
-		* Calculate the distance between 2 touches (pinch)
-		* @param {point} startPoint A point object containing x and y co-ordinates
-	    * @param {point} endPoint A point object containing x and y co-ordinates
-	    * @return int;
-		* @inner
-		*/
-		function calculateTouchesDistance(startPoint, endPoint) {
-			var diffX = Math.abs(startPoint.x - endPoint.x);
-			var diffY = Math.abs(startPoint.y - endPoint.y);
-				
-			return Math.round(Math.sqrt(diffX*diffX+diffY*diffY));
-		}
-		
-		/**
-		* Calculate the zoom factor between the start and end distances
-		* @param {int} startDistance Distance (between 2 fingers) the user started pinching at
-	    * @param {int} endDistance Distance (between 2 fingers) the user ended pinching at
-	    * @return float The zoom value from 0 to 1.
-		* @inner
-		*/
-		function calculatePinchZoom(startDistance, endDistance) {
-			var percent = (endDistance/startDistance) * 1;
-			return percent.toFixed(2);
-		}
-		
-		
-		/**
-		* Returns the pinch direction, either IN or OUT for the given points
-		* @return string Either {@link $.fn.swipe.directions.IN} or {@link $.fn.swipe.directions.OUT}
-		* @see $.fn.swipe.directions
-		* @inner
-		*/
-		function calculatePinchDirection() {
-			if(pinchZoom<1) {
-				return OUT;
-			}
-			else {
-				return IN;
-			}
-		}
-		
-		
-		/**
-		* Calculate the length / distance of the swipe
-		* @param {point} startPoint A point object containing x and y co-ordinates
-	    * @param {point} endPoint A point object containing x and y co-ordinates
-	    * @return int
-		* @inner
-		*/
-		function calculateDistance(startPoint, endPoint) {
-			return Math.round(Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2)));
-		}
-
-		/**
-		* Calculate the angle of the swipe
-		* @param {point} startPoint A point object containing x and y co-ordinates
-	    * @param {point} endPoint A point object containing x and y co-ordinates
-	    * @return int
-		* @inner
-		*/
-		function calculateAngle(startPoint, endPoint) {
-			var x = startPoint.x - endPoint.x;
-			var y = endPoint.y - startPoint.y;
-			var r = Math.atan2(y, x); //radians
-			var angle = Math.round(r * 180 / Math.PI); //degrees
-
-			//ensure value is positive
-			if (angle < 0) {
-				angle = 360 - Math.abs(angle);
-			}
-
-			return angle;
-		}
-
-		/**
-		* Calculate the direction of the swipe
-		* This will also call calculateAngle to get the latest angle of swipe
-		* @param {point} startPoint A point object containing x and y co-ordinates
-	    * @param {point} endPoint A point object containing x and y co-ordinates
-	    * @return string Either {@link $.fn.swipe.directions.LEFT} / {@link $.fn.swipe.directions.RIGHT} / {@link $.fn.swipe.directions.DOWN} / {@link $.fn.swipe.directions.UP}
-		* @see $.fn.swipe.directions
-		* @inner
-		*/
-		function calculateDirection(startPoint, endPoint ) {
-			var angle = calculateAngle(startPoint, endPoint);
-
-			if ((angle <= 45) && (angle >= 0)) {
-				return LEFT;
-			} else if ((angle <= 360) && (angle >= 315)) {
-				return LEFT;
-			} else if ((angle >= 135) && (angle <= 225)) {
-				return RIGHT;
-			} else if ((angle > 45) && (angle < 135)) {
-				return DOWN;
-			} else {
-				return UP;
-			}
-		}
-		
-
-		/**
-		* Returns a MS time stamp of the current time
-		* @return int
-		* @inner
-		*/
-		function getTimeStamp() {
-			var now = new Date();
-			return now.getTime();
-		}
-		
-		
-		
-		/**
-		 * Returns a bounds object with left, right, top and bottom properties for the element specified.
-		 * @param {DomNode} The DOM node to get the bounds for.
-		 */
-		function getbounds( el ) {
-			el = $(el);
-			var offset = el.offset();
-			
-			var bounds = {	
-					left:offset.left,
-					right:offset.left+el.outerWidth(),
-					top:offset.top,
-					bottom:offset.top+el.outerHeight()
-					}
-			
-			return bounds;	
-		}
-		
-		
-		/**
-		 * Checks if the point object is in the bounds object.
-		 * @param {object} point A point object.
-		 * @param {int} point.x The x value of the point.
-		 * @param {int} point.y The x value of the point.
-		 * @param {object} bounds The bounds object to test
-		 * @param {int} bounds.left The leftmost value
-		 * @param {int} bounds.right The righttmost value
-		 * @param {int} bounds.top The topmost value
-		* @param {int} bounds.bottom The bottommost value
-		 */
-		function isInBounds(point, bounds) {
-			return (point.x > bounds.left && point.x < bounds.right && point.y > bounds.top && point.y < bounds.bottom);
-		};
-	
-	
-	}
-	
-	
-
-
-/**
- * A catch all handler that is triggered for all swipe directions. 
- * @name $.fn.swipe#swipe
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user swiped in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(t){var e="mmenu",o="offCanvas";t[e].addons[o]={setup:function(){if(this.opts[o]){var n=this.opts[o],i=this.conf[o];a=t[e].glbl,this._api=t.merge(this._api,["open","close","setPage"]),("top"==n.position||"bottom"==n.position)&&(n.zposition="front"),"string"!=typeof i.pageSelector&&(i.pageSelector="> "+i.pageNodetype),a.$allMenus=(a.$allMenus||t()).add(this.$menu),this.vars.opened=!1;var r=[s.offcanvas];"left"!=n.position&&r.push(s.mm(n.position)),"back"!=n.zposition&&r.push(s.mm(n.zposition)),this.$menu.addClass(r.join(" ")).parent().removeClass(s.wrapper),this.setPage(a.$page),this._initBlocker(),this["_initWindow_"+o](),this.$menu[i.menuInjectMethod+"To"](i.menuWrapperSelector)}},add:function(){s=t[e]._c,n=t[e]._d,i=t[e]._e,s.add("offcanvas slideout modal background opening blocker page"),n.add("style"),i.add("resize")},clickAnchor:function(t){if(!this.opts[o])return!1;var e=this.$menu.attr("id");if(e&&e.length&&(this.conf.clone&&(e=s.umm(e)),t.is('[href="#'+e+'"]')))return this.open(),!0;if(a.$page){var e=a.$page.first().attr("id");return e&&e.length&&t.is('[href="#'+e+'"]')?(this.close(),!0):!1}}},t[e].defaults[o]={position:"left",zposition:"back",modal:!1,moveBackground:!0},t[e].configuration[o]={pageNodetype:"div",pageSelector:null,wrapPageIfNeeded:!0,menuWrapperSelector:"body",menuInjectMethod:"prepend"},t[e].prototype.open=function(){if(!this.vars.opened){var t=this;this._openSetup(),setTimeout(function(){t._openFinish()},this.conf.openingInterval),this.trigger("open")}},t[e].prototype._openSetup=function(){var e=this;this.closeAllOthers(),a.$page.each(function(){t(this).data(n.style,t(this).attr("style")||"")}),a.$wndw.trigger(i.resize+"-offcanvas",[!0]);var r=[s.opened];this.opts[o].modal&&r.push(s.modal),this.opts[o].moveBackground&&r.push(s.background),"left"!=this.opts[o].position&&r.push(s.mm(this.opts[o].position)),"back"!=this.opts[o].zposition&&r.push(s.mm(this.opts[o].zposition)),this.opts.extensions&&r.push(this.opts.extensions),a.$html.addClass(r.join(" ")),setTimeout(function(){e.vars.opened=!0},this.conf.openingInterval),this.$menu.addClass(s.current+" "+s.opened)},t[e].prototype._openFinish=function(){var t=this;this.__transitionend(a.$page.first(),function(){t.trigger("opened")},this.conf.transitionDuration),a.$html.addClass(s.opening),this.trigger("opening")},t[e].prototype.close=function(){if(this.vars.opened){var e=this;this.__transitionend(a.$page.first(),function(){e.$menu.removeClass(s.current).removeClass(s.opened),a.$html.removeClass(s.opened).removeClass(s.modal).removeClass(s.background).removeClass(s.mm(e.opts[o].position)).removeClass(s.mm(e.opts[o].zposition)),e.opts.extensions&&a.$html.removeClass(e.opts.extensions),a.$page.each(function(){t(this).attr("style",t(this).data(n.style))}),e.vars.opened=!1,e.trigger("closed")},this.conf.transitionDuration),a.$html.removeClass(s.opening),this.trigger("close"),this.trigger("closing")}},t[e].prototype.closeAllOthers=function(){a.$allMenus.not(this.$menu).each(function(){var o=t(this).data(e);o&&o.close&&o.close()})},t[e].prototype.setPage=function(e){var n=this,i=this.conf[o];e&&e.length||(e=a.$body.find(i.pageSelector),e.length>1&&i.wrapPageIfNeeded&&(e=e.wrapAll("<"+this.conf[o].pageNodetype+" />").parent())),e.each(function(){t(this).attr("id",t(this).attr("id")||n.__getUniqueId())}),e.addClass(s.page+" "+s.slideout),a.$page=e,this.trigger("setPage",e)},t[e].prototype["_initWindow_"+o]=function(){a.$wndw.off(i.keydown+"-offcanvas").on(i.keydown+"-offcanvas",function(t){return a.$html.hasClass(s.opened)&&9==t.keyCode?(t.preventDefault(),!1):void 0});var t=0;a.$wndw.off(i.resize+"-offcanvas").on(i.resize+"-offcanvas",function(e,o){if(1==a.$page.length&&(o||a.$html.hasClass(s.opened))){var n=a.$wndw.height();(o||n!=t)&&(t=n,a.$page.css("minHeight",n))}})},t[e].prototype._initBlocker=function(){var e=this;a.$blck||(a.$blck=t('<div id="'+s.blocker+'" class="'+s.slideout+'" />')),a.$blck.appendTo(a.$body).off(i.touchstart+"-offcanvas "+i.touchmove+"-offcanvas").on(i.touchstart+"-offcanvas "+i.touchmove+"-offcanvas",function(t){t.preventDefault(),t.stopPropagation(),a.$blck.trigger(i.mousedown+"-offcanvas")}).off(i.mousedown+"-offcanvas").on(i.mousedown+"-offcanvas",function(t){t.preventDefault(),a.$html.hasClass(s.modal)||(e.closeAllOthers(),e.close())})};var s,n,i,a}(jQuery);
+/*	
+ * jQuery mmenu autoHeight addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-
-
-
-/**
- * A handler that is triggered for "left" swipes.
- * @name $.fn.swipe#swipeLeft
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user swiped in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(t){var e="mmenu",i="autoHeight";t[e].addons[i]={setup:function(){if(this.opts.offCanvas){switch(this.opts.offCanvas.position){case"left":case"right":return}var n=this,o=this.opts[i];if(this.conf[i],h=t[e].glbl,"boolean"==typeof o&&o&&(o={height:"auto"}),"object"!=typeof o&&(o={}),o=this.opts[i]=t.extend(!0,{},t[e].defaults[i],o),"auto"==o.height){this.$menu.addClass(s.autoheight);var u=function(t){var e=this.$menu.children("."+s.current);_top=parseInt(e.css("top"),10)||0,_bot=parseInt(e.css("bottom"),10)||0,this.$menu.addClass(s.measureheight),t=t||this.$menu.children("."+s.current),t.is("."+s.vertical)&&(t=t.parents("."+s.panel).not("."+s.vertical).first()),this.$menu.height(t.outerHeight()+_top+_bot).removeClass(s.measureheight)};this.bind("update",u),this.bind("openPanel",u),this.bind("closePanel",u),this.bind("open",u),h.$wndw.off(a.resize+"-autoheight").on(a.resize+"-autoheight",function(){u.call(n)})}}},add:function(){s=t[e]._c,n=t[e]._d,a=t[e]._e,s.add("autoheight measureheight"),a.add("resize")},clickAnchor:function(){}},t[e].defaults[i]={height:"default"};var s,n,a,h}(jQuery);
+/*	
+ * jQuery mmenu backButton addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-/**
- * A handler that is triggered for "right" swipes.
- * @name $.fn.swipe#swipeRight
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user swiped in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(o){var t="mmenu",n="backButton";o[t].addons[n]={setup:function(){if(this.opts.offCanvas){var i=this,e=this.opts[n];if(this.conf[n],a=o[t].glbl,"boolean"==typeof e&&(e={close:e}),"object"!=typeof e&&(e={}),e=o.extend(!0,{},o[t].defaults[n],e),e.close){var c="#"+i.$menu.attr("id");this.bind("opened",function(){location.hash!=c&&history.pushState(null,document.title,c)}),o(window).on("popstate",function(o){a.$html.hasClass(s.opened)?(o.stopPropagation(),i.close()):location.hash==c&&(o.stopPropagation(),i.open())})}}},add:function(){return window.history&&window.history.pushState?(s=o[t]._c,i=o[t]._d,e=o[t]._e,void 0):(o[t].addons[n].setup=function(){},void 0)},clickAnchor:function(){}},o[t].defaults[n]={close:!1};var s,i,e,a}(jQuery);
+/*	
+ * jQuery mmenu counters addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-/**
- * A handler that is triggered for "up" swipes.
- * @name $.fn.swipe#swipeUp
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user swiped in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(t){var n="mmenu",e="counters";t[n].addons[e]={setup:function(){var c=this,o=this.opts[e];this.conf[e],s=t[n].glbl,"boolean"==typeof o&&(o={add:o,update:o}),"object"!=typeof o&&(o={}),o=this.opts[e]=t.extend(!0,{},t[n].defaults[e],o),this.bind("init",function(n){this.__refactorClass(t("em",n),this.conf.classNames[e].counter,"counter")}),o.add&&this.bind("init",function(n){n.each(function(){var n=t(this).data(a.parent);n&&(n.children("em."+i.counter).length||n.prepend(t('<em class="'+i.counter+'" />')))})}),o.update&&this.bind("update",function(){this.$menu.find("."+i.panel).each(function(){var n=t(this),e=n.data(a.parent);if(e){var s=e.children("em."+i.counter);s.length&&(n=n.children("."+i.listview),n.length&&s.html(c.__filterListItems(n.children()).length))}})})},add:function(){i=t[n]._c,a=t[n]._d,c=t[n]._e,i.add("counter search noresultsmsg")},clickAnchor:function(){}},t[n].defaults[e]={add:!1,update:!1},t[n].configuration.classNames[e]={counter:"Counter"};var i,a,c,s}(jQuery);
+/*	
+ * jQuery mmenu dividers addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-/**
- * A handler that is triggered for "down" swipes.
- * @name $.fn.swipe#swipeDown
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user swiped in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(i){var e="mmenu",s="dividers";i[e].addons[s]={setup:function(){var n=this,a=this.opts[s];if(this.conf[s],l=i[e].glbl,"boolean"==typeof a&&(a={add:a,fixed:a}),"object"!=typeof a&&(a={}),a=this.opts[s]=i.extend(!0,{},i[e].defaults[s],a),this.bind("init",function(){this.__refactorClass(i("li",this.$menu),this.conf.classNames[s].collapsed,"collapsed")}),a.add&&this.bind("init",function(e){switch(a.addTo){case"panels":var s=e;break;default:var s=i(a.addTo,this.$menu).filter("."+d.panel)}i("."+d.divider,s).remove(),s.find("."+d.listview).not("."+d.vertical).each(function(){var e="";n.__filterListItems(i(this).children()).each(function(){var s=i.trim(i(this).children("a, span").text()).slice(0,1).toLowerCase();s!=e&&s.length&&(e=s,i('<li class="'+d.divider+'">'+s+"</li>").insertBefore(this))})})}),a.collapse&&this.bind("init",function(e){i("."+d.divider,e).each(function(){var e=i(this),s=e.nextUntil("."+d.divider,"."+d.collapsed);s.length&&(e.children("."+d.subopen).length||(e.wrapInner("<span />"),e.prepend('<a href="#" class="'+d.subopen+" "+d.fullsubopen+'" />')))})}),a.fixed){var o=function(e){e=e||this.$menu.children("."+d.current);var s=e.find("."+d.divider).not("."+d.hidden);if(s.length){this.$menu.addClass(d.hasdividers);var n=e.scrollTop()||0,t="";e.is(":visible")&&e.find("."+d.divider).not("."+d.hidden).each(function(){i(this).position().top+n<n+1&&(t=i(this).text())}),this.$fixeddivider.text(t)}else this.$menu.removeClass(d.hasdividers)};this.$fixeddivider=i('<ul class="'+d.listview+" "+d.fixeddivider+'"><li class="'+d.divider+'"></li></ul>').prependTo(this.$menu).children(),this.bind("openPanel",o),this.bind("init",function(e){e.off(t.scroll+"-dividers "+t.touchmove+"-dividers").on(t.scroll+"-dividers "+t.touchmove+"-dividers",function(){o.call(n,i(this))})})}},add:function(){d=i[e]._c,n=i[e]._d,t=i[e]._e,d.add("collapsed uncollapsed fixeddivider hasdividers"),t.add("scroll")},clickAnchor:function(i,e){if(this.opts[s].collapse&&e){var n=i.parent();if(n.is("."+d.divider)){var t=n.nextUntil("."+d.divider,"."+d.collapsed);return n.toggleClass(d.opened),t[n.hasClass(d.opened)?"addClass":"removeClass"](d.uncollapsed),!0}}return!1}},i[e].defaults[s]={add:!1,addTo:"panels",fixed:!1,collapse:!1},i[e].configuration.classNames[s]={collapsed:"Collapsed"};var d,n,t,l}(jQuery);
+/*	
+ * jQuery mmenu dragOpen addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-/**
- * A handler triggered for every phase of the swipe. This handler is constantly fired for the duration of the pinch.
- * This is triggered regardless of swipe thresholds.
- * @name $.fn.swipe#swipeStatus
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {string} phase The phase of the swipe event. See {@link $.fn.swipe.phases}
- * @param {string} direction The direction the user swiped in. This is null if the user has yet to move. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user swiped. This is 0 if the user has yet to move.
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {object} fingerData The coordinates of fingers in event
+!function(e){function t(e,t,n){return t>e&&(e=t),e>n&&(e=n),e}var n="mmenu",o="dragOpen";e[n].addons[o]={setup:function(){if(this.opts.offCanvas){var i=this,a=this.opts[o],p=this.conf[o];if(r=e[n].glbl,"boolean"==typeof a&&(a={open:a}),"object"!=typeof a&&(a={}),a=this.opts[o]=e.extend(!0,{},e[n].defaults[o],a),a.open){var d,f,c,u,h,l={},m=0,g=!1,v=!1,w=0,_=0;switch(this.opts.offCanvas.position){case"left":case"right":l.events="panleft panright",l.typeLower="x",l.typeUpper="X",v="width";break;case"top":case"bottom":l.events="panup pandown",l.typeLower="y",l.typeUpper="Y",v="height"}switch(this.opts.offCanvas.position){case"right":case"bottom":l.negative=!0,u=function(e){e>=r.$wndw[v]()-a.maxStartPos&&(m=1)};break;default:l.negative=!1,u=function(e){e<=a.maxStartPos&&(m=1)}}switch(this.opts.offCanvas.position){case"left":l.open_dir="right",l.close_dir="left";break;case"right":l.open_dir="left",l.close_dir="right";break;case"top":l.open_dir="down",l.close_dir="up";break;case"bottom":l.open_dir="up",l.close_dir="down"}switch(this.opts.offCanvas.zposition){case"front":h=function(){return this.$menu};break;default:h=function(){return e("."+s.slideout)}}var b=this.__valueOrFn(a.pageNode,this.$menu,r.$page);"string"==typeof b&&(b=e(b));var y=new Hammer(b[0],a.vendors.hammer);y.on("panstart",function(e){u(e.center[l.typeLower]),r.$slideOutNodes=h(),g=l.open_dir}).on(l.events+" panend",function(e){m>0&&e.preventDefault()}).on(l.events,function(e){if(d=e["delta"+l.typeUpper],l.negative&&(d=-d),d!=w&&(g=d>=w?l.open_dir:l.close_dir),w=d,w>a.threshold&&1==m){if(r.$html.hasClass(s.opened))return;m=2,i._openSetup(),i.trigger("opening"),r.$html.addClass(s.dragging),_=t(r.$wndw[v]()*p[v].perc,p[v].min,p[v].max)}2==m&&(f=t(w,10,_)-("front"==i.opts.offCanvas.zposition?_:0),l.negative&&(f=-f),c="translate"+l.typeUpper+"("+f+"px )",r.$slideOutNodes.css({"-webkit-transform":"-webkit-"+c,transform:c}))}).on("panend",function(){2==m&&(r.$html.removeClass(s.dragging),r.$slideOutNodes.css("transform",""),i[g==l.open_dir?"_openFinish":"close"]()),m=0})}}},add:function(){return"function"!=typeof Hammer||Hammer.VERSION<2?(e[n].addons[o].setup=function(){},void 0):(s=e[n]._c,i=e[n]._d,a=e[n]._e,s.add("dragging"),void 0)},clickAnchor:function(){}},e[n].defaults[o]={open:!1,maxStartPos:100,threshold:50,vendors:{hammer:{}}},e[n].configuration[o]={width:{perc:.8,min:140,max:440},height:{perc:.8,min:140,max:880}};var s,i,a,r}(jQuery);
+/*	
+ * jQuery mmenu fixedElements addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-/**
- * A handler triggered for pinch in events.
- * @name $.fn.swipe#pinchIn
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user pinched in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user pinched
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {int} zoom The zoom/scale level the user pinched too, 0-1.
- * @param {object} fingerData The coordinates of fingers in event
+!function(i){var s="mmenu",n="fixedElements";i[s].addons[n]={setup:function(){if(this.opts.offCanvas){this.opts[n],this.conf[n],o=i[s].glbl;var a=function(i){var s=this.conf.classNames[n].fixed;this.__refactorClass(i.find("."+s),s,"slideout").appendTo(o.$body)};a.call(this,o.$page),this.bind("setPage",a)}},add:function(){a=i[s]._c,t=i[s]._d,e=i[s]._e,a.add("fixed")},clickAnchor:function(){}},i[s].configuration.classNames[n]={fixed:"Fixed"};var a,t,e,o}(jQuery);
+/*	
+ * jQuery mmenu navbar addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-/**
- * A handler triggered for pinch out events.
- * @name $.fn.swipe#pinchOut
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user pinched in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user pinched
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {int} zoom The zoom/scale level the user pinched too, 0-1.
- * @param {object} fingerData The coordinates of fingers in event
- */ 
-
-/**
- * A handler triggered for all pinch events. This handler is constantly fired for the duration of the pinch. This is triggered regardless of thresholds.
- * @name $.fn.swipe#pinchStatus
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {int} direction The direction the user pinched in. See {@link $.fn.swipe.directions}
- * @param {int} distance The distance the user pinched
- * @param {int} duration The duration of the swipe in milliseconds
- * @param {int} fingerCount The number of fingers used. See {@link $.fn.swipe.fingers}
- * @param {int} zoom The zoom/scale level the user pinched too, 0-1.
- * @param {object} fingerData The coordinates of fingers in event
+!function(n){var a="mmenu",t="navbars";n[a].addons[t]={setup:function(){var r=this,s=this.opts[t];if(this.conf[t],i=n[a].glbl,"undefined"!=typeof s){s instanceof Array||(s=[s]);var d={};n.each(s,function(i){var c=s[i];"boolean"==typeof c&&c&&(c={}),"object"!=typeof c&&(c={}),"undefined"==typeof c.content&&(c.content=["prev","title"]),c.content instanceof Array||(c.content=[c.content]),c=n.extend(!0,{},r.opts.navbar,c);var o=c.position;"bottom"!=o&&(o="top"),d[o]||(d[o]=0),d[o]++;for(var l=n("<div />").addClass(e.navbar).addClass(e.navbar+"-"+o).addClass(e.navbar+"-"+o+"-"+d[o]),h=0,f=c.content.length;f>h;h++){var v=n[a].addons[t][c.content[h]]||!1;v?v.call(r,l,c):(v=c.content[h],v instanceof n||(v=n(c.content[h])),v.each(function(){l.append(n(this))}))}var u=l.children().not("."+e.btn).length;u>1&&l.addClass(e.navbar+"-"+u),l.children("."+e.btn).length&&l.addClass(e.hasbtns),l.prependTo(r.$menu)});for(var c in d)r.$menu.addClass(e.hasnavbar+"-"+c+"-"+d[c])}},add:function(){e=n[a]._c,r=n[a]._d,s=n[a]._e,e.add("close hasbtns")},clickAnchor:function(){}},n[a].configuration.classNames[t]={panelTitle:"Title",panelNext:"Next",panelPrev:"Prev"};var e,r,s,i}(jQuery),/*	
+ * jQuery mmenu navbar addon close content
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-/**
- * A click handler triggered when a user simply clicks, rather than swipes on an element.
- * This is deprecated since version 1.6.2, any assignment to click will be assigned to the tap handler.
- * You cannot use <code>on</code> to bind to this event as the default jQ <code>click</code> event will be triggered.
- * Use the <code>tap</code> event instead.
- * @name $.fn.swipe#click
- * @event
- * @deprecated since version 1.6.2, please use {@link $.fn.swipe#tap} instead 
- * @default null
- * @param {EventObject} event The original event object
- * @param {DomObject} target The element clicked on.
+function(n){var a="mmenu",t="navbars",e="close";n[a].addons[t][e]=function(t){var e=n[a]._c,r=n[a].glbl;t.append('<a class="'+e.close+" "+e.btn+'" href="#"></a>');var s=function(n){t.find("."+e.close).attr("href","#"+n.attr("id"))};s.call(this,r.$page),this.bind("setPage",s)}}(jQuery),/*	
+ * jQuery mmenu navbar addon next content
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
- /**
- * A click / tap handler triggered when a user simply clicks or taps, rather than swipes on an element.
- * @name $.fn.swipe#tap
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {DomObject} target The element clicked on.
+function(n){var a="mmenu",t="navbars",e="next";n[a].addons[t][e]=function(e){var r=n[a]._c;e.append('<a class="'+r.next+" "+r.btn+'" href="#"></a>');var s=function(n){n=n||this.$menu.children("."+r.current);var a=e.find("."+r.next),s=n.find("."+this.conf.classNames[t].panelNext),i=s.attr("href"),d=s.html();a[i?"attr":"removeAttr"]("href",i),a[i||d?"removeClass":"addClass"](r.hidden),a.html(d)};this.bind("openPanel",s),this.bind("init",function(){s.call(this)})}}(jQuery),/*	
+ * jQuery mmenu navbar addon prev content
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
-/**
- * A double tap handler triggered when a user double clicks or taps on an element.
- * You can set the time delay for a double tap with the {@link $.fn.swipe.defaults#doubleTapThreshold} property. 
- * Note: If you set both <code>doubleTap</code> and <code>tap</code> handlers, the <code>tap</code> event will be delayed by the <code>doubleTapThreshold</code>
- * as the script needs to check if its a double tap.
- * @name $.fn.swipe#doubleTap
- * @see  $.fn.swipe.defaults#doubleTapThreshold
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {DomObject} target The element clicked on.
+function(n){var a="mmenu",t="navbars",e="prev";n[a].addons[t][e]=function(e){var r=n[a]._c;e.append('<a class="'+r.prev+" "+r.btn+'" href="#"></a>'),this.bind("init",function(n){n.removeClass(r.hasnavbar)});var s=function(n){n=n||this.$menu.children("."+r.current);var a=e.find("."+r.prev),s=n.find("."+this.conf.classNames[t].panelPrev);s.length||(s=n.children("."+r.navbar).children("."+r.prev));var i=s.attr("href"),d=s.html();a[i?"attr":"removeAttr"]("href",i),a[i||d?"removeClass":"addClass"](r.hidden),a.html(d)};this.bind("openPanel",s),this.bind("init",function(){s.call(this)})}}(jQuery),/*	
+ * jQuery mmenu navbar addon searchfield content
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
- 
- /**
- * A long tap handler triggered once a tap has been release if the tap was longer than the longTapThreshold.
- * You can set the time delay for a long tap with the {@link $.fn.swipe.defaults#longTapThreshold} property. 
- * @name $.fn.swipe#longTap
- * @see  $.fn.swipe.defaults#longTapThreshold
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {DomObject} target The element clicked on.
+function(n){var a="mmenu",t="navbars",e="searchfield";n[a].addons[t][e]=function(t){var e=n[a]._c,r=n('<div class="'+e.search+'" />').appendTo(t);"object"!=typeof this.opts.searchfield&&(this.opts.searchfield={}),this.opts.searchfield.add=!0,this.opts.searchfield.addTo=r}}(jQuery),/*	
+ * jQuery mmenu navbar addon title content
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-  /**
- * A hold tap handler triggered as soon as the longTapThreshold is reached
- * You can set the time delay for a long tap with the {@link $.fn.swipe.defaults#longTapThreshold} property. 
- * @name $.fn.swipe#hold
- * @see  $.fn.swipe.defaults#longTapThreshold
- * @event
- * @default null
- * @param {EventObject} event The original event object
- * @param {DomObject} target The element clicked on.
+function(n){var a="mmenu",t="navbars",e="title";n[a].addons[t][e]=function(e,r){var s=n[a]._c;e.append('<a class="'+s.title+'"></a>');var i=function(n){n=n||this.$menu.children("."+s.current);var a=e.find("."+s.title),i=n.find("."+this.conf.classNames[t].panelTitle);i.length||(i=n.children("."+s.navbar).children("."+s.title));var d=i.attr("href"),c=i.html()||r.title;a[d?"attr":"removeAttr"]("href",d),a[d||c?"removeClass":"addClass"](s.hidden),a.html(c)};this.bind("openPanel",i),this.bind("init",function(){i.call(this)})}}(jQuery);
+/*	
+ * jQuery mmenu searchfield addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
  */
-
-}));
-;/**
+!function(e){function s(e){switch(e){case 9:case 16:case 17:case 18:case 37:case 38:case 39:case 40:return!0}return!1}var n="mmenu",a="searchfield";e[n].addons[a]={setup:function(){var o=this,d=this.opts[a],c=this.conf[a];r=e[n].glbl,"boolean"==typeof d&&(d={add:d}),"object"!=typeof d&&(d={}),d=this.opts[a]=e.extend(!0,{},e[n].defaults[a],d),this.bind("close",function(){this.$menu.find("."+l.search).find("input").blur()}),this.bind("init",function(n){if(d.add){switch(d.addTo){case"panels":var a=n;break;default:var a=e(d.addTo,this.$menu)}a.each(function(){var s=e(this);if(!s.is("."+l.panel)||!s.is("."+l.vertical)){if(!s.children("."+l.search).length){var n=c.form?"form":"div",a=e("<"+n+' class="'+l.search+'" />');if(c.form&&"object"==typeof c.form)for(var t in c.form)a.attr(t,c.form[t]);a.append('<input placeholder="'+d.placeholder+'" type="text" autocomplete="off" />'),s.hasClass(l.search)?s.replaceWith(a):s.prepend(a).addClass(l.hassearch)}if(d.noResults){var i=s.closest("."+l.panel).length;if(i||(s=o.$menu.children("."+l.panel).first()),!s.children("."+l.noresultsmsg).length){var r=s.children("."+l.listview);e('<div class="'+l.noresultsmsg+'" />').append(d.noResults)[r.length?"insertBefore":"prependTo"](r.length?r:s)}}}}),d.search&&e("."+l.search,this.$menu).each(function(){var n=e(this),a=n.closest("."+l.panel).length;if(a)var r=n.closest("."+l.panel),c=r;else var r=e("."+l.panel,o.$menu),c=o.$menu;var h=n.children("input"),u=o.__findAddBack(r,"."+l.listview).children("li"),f=u.filter("."+l.divider),p=o.__filterListItems(u),v="> a",m=v+", > span",b=function(){var s=h.val().toLowerCase();r.scrollTop(0),p.add(f).addClass(l.hidden).find("."+l.fullsubopensearch).removeClass(l.fullsubopen).removeClass(l.fullsubopensearch),p.each(function(){var n=e(this),a=v;(d.showTextItems||d.showSubPanels&&n.find("."+l.next))&&(a=m),e(a,n).text().toLowerCase().indexOf(s)>-1&&n.add(n.prevAll("."+l.divider).first()).removeClass(l.hidden)}),d.showSubPanels&&r.each(function(){var s=e(this);o.__filterListItems(s.find("."+l.listview).children()).each(function(){var s=e(this),n=s.data(t.sub);s.removeClass(l.nosubresults),n&&n.find("."+l.listview).children().removeClass(l.hidden)})}),e(r.get().reverse()).each(function(s){var n=e(this),i=n.data(t.parent);i&&(o.__filterListItems(n.find("."+l.listview).children()).length?(i.hasClass(l.hidden)&&i.children("."+l.next).not("."+l.fullsubopen).addClass(l.fullsubopen).addClass(l.fullsubopensearch),i.removeClass(l.hidden).removeClass(l.nosubresults).prevAll("."+l.divider).first().removeClass(l.hidden)):a||(n.hasClass(l.opened)&&setTimeout(function(){o.openPanel(i.closest("."+l.panel))},1.5*(s+1)*o.conf.openingInterval),i.addClass(l.nosubresults)))}),c[p.not("."+l.hidden).length?"removeClass":"addClass"](l.noresults),this.update()};h.off(i.keyup+"-searchfield "+i.change+"-searchfield").on(i.keyup+"-searchfield",function(e){s(e.keyCode)||b.call(o)}).on(i.change+"-searchfield",function(){b.call(o)})})}})},add:function(){l=e[n]._c,t=e[n]._d,i=e[n]._e,l.add("search hassearch noresultsmsg noresults nosubresults fullsubopensearch"),i.add("change keyup")},clickAnchor:function(){}},e[n].defaults[a]={add:!1,addTo:"panels",search:!0,placeholder:"Search",noResults:"No results found.",showTextItems:!1,showSubPanels:!0},e[n].configuration[a]={form:!1};var l,t,i,r}(jQuery);
+/*	
+ * jQuery mmenu sectionIndexer addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
+ */
+!function(e){var a="mmenu",r="sectionIndexer";e[a].addons[r]={setup:function(){var n=this,d=this.opts[r];this.conf[r],t=e[a].glbl,"boolean"==typeof d&&(d={add:d}),"object"!=typeof d&&(d={}),d=this.opts[r]=e.extend(!0,{},e[a].defaults[r],d),this.bind("init",function(a){if(d.add){switch(d.addTo){case"panels":var r=a;break;default:var r=e(d.addTo,this.$menu).filter("."+i.panel)}r.find("."+i.divider).closest("."+i.panel).addClass(i.hasindexer)}if(!this.$indexer&&this.$menu.children("."+i.hasindexer).length){this.$indexer=e('<div class="'+i.indexer+'" />').prependTo(this.$menu).append('<a href="#a">a</a><a href="#b">b</a><a href="#c">c</a><a href="#d">d</a><a href="#e">e</a><a href="#f">f</a><a href="#g">g</a><a href="#h">h</a><a href="#i">i</a><a href="#j">j</a><a href="#k">k</a><a href="#l">l</a><a href="#m">m</a><a href="#n">n</a><a href="#o">o</a><a href="#p">p</a><a href="#q">q</a><a href="#r">r</a><a href="#s">s</a><a href="#t">t</a><a href="#u">u</a><a href="#v">v</a><a href="#w">w</a><a href="#x">x</a><a href="#y">y</a><a href="#z">z</a>'),this.$indexer.children().on(s.mouseover+"-searchfield "+i.touchstart+"-searchfield",function(){var a=e(this).attr("href").slice(1),r=n.$menu.children("."+i.current),s=r.find("."+i.listview),t=!1,d=r.scrollTop(),h=s.position().top+parseInt(s.css("margin-top"),10)+parseInt(s.css("padding-top"),10)+d;r.scrollTop(0),s.children("."+i.divider).not("."+i.hidden).each(function(){t===!1&&a==e(this).text().slice(0,1).toLowerCase()&&(t=e(this).position().top+h)}),r.scrollTop(t!==!1?t:d)});var t=function(e){n.$menu[(e.hasClass(i.hasindexer)?"add":"remove")+"Class"](i.hasindexer)};this.bind("openPanel",t),t.call(this,this.$menu.children("."+i.current))}})},add:function(){i=e[a]._c,n=e[a]._d,s=e[a]._e,i.add("indexer hasindexer"),s.add("mouseover touchstart")},clickAnchor:function(e){return e.parent().is("."+i.indexer)?!0:void 0}},e[a].defaults[r]={add:!1,addTo:"panels"};var i,n,s,t}(jQuery);
+/*	
+ * jQuery mmenu toggles addon
+ * mmenu.frebsite.nl
+ *
+ * Copyright (c) Fred Heusschen
+ */
+!function(t){var e="mmenu",c="toggles";t[e].addons[c]={setup:function(){var n=this;this.opts[c],this.conf[c],l=t[e].glbl,this.bind("init",function(e){this.__refactorClass(t("input",e),this.conf.classNames[c].toggle,"toggle"),this.__refactorClass(t("input",e),this.conf.classNames[c].check,"check"),t("input."+s.toggle+", input."+s.check,e).each(function(){var e=t(this),c=e.closest("li"),i=e.hasClass(s.toggle)?"toggle":"check",l=e.attr("id")||n.__getUniqueId();c.children('label[for="'+l+'"]').length||(e.attr("id",l),c.prepend(e),t('<label for="'+l+'" class="'+s[i]+'"></label>').insertBefore(c.children("a, span").last()))})})},add:function(){s=t[e]._c,n=t[e]._d,i=t[e]._e,s.add("toggle check")},clickAnchor:function(){}},t[e].configuration.classNames[c]={toggle:"Toggle",check:"Check"};var s,n,i,l}(jQuery);;/**
  * This file handels ajax calls
  *
  * @class ajax
@@ -11344,15 +9406,18 @@ var ajax = (function ($) {
 	 */
 	function loadHome() {
 		var content = $("#content");
-		var container = $("#container");
 		var login = $("#login");
 		var loading = $("#loading");
+		var header = $("#header");
+		var menu_icon = $("#menu-icon");
 
 		content.load("view/home.html", function () {
-			content.attr('class', 'content home');
-			sidebar.close();
+
 			login.hide();
 			loading.hide();
+			content.attr('class', 'content home');
+			sidebar.close();
+
 
 			// Insert necessary data in view
 			$("#tokens").empty().append(localStorage.tokens);
@@ -11367,7 +9432,8 @@ var ajax = (function ($) {
 
 			// Show content
 			content.show();
-			container.show();
+			menu_icon.show();
+			header.show();
 
 			// Show notification about earned tokens
 			if (localStorage.tokenDiff) {
@@ -11427,6 +9493,7 @@ var ajax = (function ($) {
 		var content = $("#content");
 
 		content.load("view/setBet.html", function () {
+			bets.setBetButton();
 			content.attr('class', 'content setBet');
 			userSetup.loadCountries("#bet_countries");
 			$("#eventName").empty().append(eventName);
@@ -11548,32 +9615,6 @@ var bets = (function ($) {
 		body.on('click', ".bet", function () {
 			ajax.loadSetBet($(this).data("name"), $(this).data("id"));
 		});
-
-		body.on('click', '#bet_button', function () {
-
-			// Get selected country
-			var eventId = $(this).data("id");
-			var countryVal = $('#bet_countries').val();
-			var tokenVal = $('#set_tokens').val();
-
-			// Empty error
-			var error = $('#bet_error');
-			error.empty();
-
-			if (countryVal !== null && tokenVal !== "") {
-				// Store country id and name in localstorage
-				var country = JSON.parse(countryVal);
-				var countryId = country.id;
-
-				if (tokenVal <= localStorage.tokens) {
-					websocket.setBet(eventId, countryId, tokenVal);
-				} else {
-					error.show().append('You can´t bet more tokens than you have.');
-				}
-			} else {
-				error.show().append('You have to fill out both fields.');
-			}
-		});
 	}
 
 	/**
@@ -11627,10 +9668,46 @@ var bets = (function ($) {
 		}
 	}
 
+	/**
+	 * Sets up betbutton
+	 */
+	function setBetButton(){
+		$('#bet_button').click(function () {
+
+			// Get selected country
+			var eventId = $(this).data("id");
+			var countryVal = $('#bet_countries').val();
+			var tokenVal = $('#set_tokens').val();
+
+			// Empty error
+			var error = $('#bet_error');
+			error.empty();
+
+			if (countryVal !== null && tokenVal !== "") {
+				// Store country id and name in localstorage
+				var country = JSON.parse(countryVal);
+				var countryId = country.id;
+
+				if (tokenVal <= parseInt(localStorage.tokens)) {
+					console.log("hallo");
+					websocket.setBet(eventId, countryId, tokenVal);
+				} else {
+					error.show().append('You can´t bet more tokens than you have.');
+				}
+			} else {
+				error.show().append('You have to fill out both fields.');
+			}
+		});
+	}
+
 	return {
 		getEvents: function () {
 			getEvents();
 			init();
+		},
+
+		setBetButton: function(){
+			setBetButton();
 		}
 	};
 
@@ -11652,15 +9729,7 @@ var cordova = (function ($) {
 	 */
 	function init() {
 
-		var content = $('#content');
 
-		if (content.hasClass('home')) {
-			navigator.app.exitApp();
-		} else if (content.hasClass('setBet')) {
-			ajax.loadBets();
-		} else {
-			ajax.loadHome();
-		}
 	}
 
 	return {
@@ -12050,40 +10119,21 @@ var sidebar = (function ($) {
 	 */
 	function init() {
 
-		/**
-		 * Click on menu button
-		 */
-		$("[data-toggle]").click(function() {
-			$(this).toggleClass('open');
-			var toggle_el = $(this).data("toggle");
-			$(toggle_el).toggleClass("open-sidebar");
-		});
-
-		/**
-		 * Enable swipe functionality
-		 */
-		$(".main-content").swipe({
-			swipeStatus:function(event, phase, direction, distance, duration, fingers)
-			{
-				if (phase==="move" && direction ==="right") {
-					$(".container").addClass("open-sidebar");
-					$("#sidebar-toggle").addClass('open');
-					return false;
-				}
-				if (phase==="move" && direction ==="left") {
-					$(".container").removeClass("open-sidebar");
-					$("#sidebar-toggle").removeClass('open');
-					return false;
-				}
+		$("#sidebar").mmenu({
+			navbar: {
+				title: "",
+				titleLink : "none"
+			}
+		}, {
+			// configuration
+			classNames: {
+				selected: "active"
 			}
 		});
 
-		/**
-		 * Add active class to current page in menu
-		 */
-		$(".sidebar_item").on('click', function(){
-			$(".sidebar_item").removeClass('active');
-			$(this).addClass("active");
+
+		$("#sidebar").on("opening.mm", function(){
+			$("#menu_icon").addClass('open');
 		});
 
 	}
@@ -12092,8 +10142,8 @@ var sidebar = (function ($) {
 	 * Closes the sidebar
 	 */
 	function close() {
-		$(".container").removeClass("open-sidebar");
-		$("#sidebar-toggle").removeClass('open');
+		$("#sidebar").data( "mmenu" ).close();
+		$("#menu_icon").removeClass('open');
 	}
 
 	return {
@@ -12225,6 +10275,7 @@ var vouchers = (function ($) {
 		if (localStorage.vouchers_json) {
 			var vouchersJson = JSON.parse(localStorage.vouchers_json);
 			$.each(vouchersJson, function (i, v) {
+				console.log(v);
 				if (parseInt(v.voucher_id) === 1) {
 					$("#ten").addClass("unlocked");
 				}
@@ -12339,7 +10390,8 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://127.0.01:9999/ws');
+			var websocket = new WebSocket('ws://46.101.173.139:9999/ws');
+			//var websocket = new WebSocket('ws://127.0.0.1:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -12607,6 +10659,8 @@ var websocket = (function ($) {
 				}]
 			};
 
+			console.log("betset");
+
 			con.getInstance().send(JSON.stringify(jsonRequest));
 			con.getInstance().onmessage = function (msg) {
 
@@ -12716,9 +10770,11 @@ var websocket = (function ($) {
 
 								con.getInstance().send(JSON.stringify(jsonRequest));
 								con.getInstance().onmessage = function (msg) {
+									console.log(msg);
 
 									var response = JSON.parse(msg.data);
 									localStorage.vouchers_json = JSON.stringify(response.data);
+
 									if (response.response === "success") {
 
 										// load the betscreen
@@ -12782,6 +10838,7 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
+			sidebar.init();
 		}
 	};
 
@@ -12789,15 +10846,22 @@ var main = function ( $ ) {
 
 
 jQuery(document).ready(function() {
+
+	function onBackKeyDown() {
+		var content = $('#content');
+
+		if (content.hasClass('home')) {
+			navigator.app.exitApp();
+		} else if (content.hasClass('setBet')) {
+			ajax.loadBets();
+		} else {
+			ajax.loadHome();
+		}
+	}
+
+	document.addEventListener("backbutton", onBackKeyDown, false);
+
 	main.init();
-});
-
-jQuery(window).load(function(){
-	document.addEventListener("deviceready", function(){
-		document.addEventListener("backbutton", cordova.init() , false);
-	}, false);
-
-	sidebar.init();
 });
 
 

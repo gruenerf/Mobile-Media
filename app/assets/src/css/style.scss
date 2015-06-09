@@ -16,6 +16,7 @@ $font_size: 20px;
 */
 
 @import "jquery-ui.min";
+@import "jquery.mmenu.all";
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -96,9 +97,7 @@ button:focus {
 
 body,
 html {
-	height: 100%;
 	margin: 0;
-	overflow: hidden;
 	font-weight: 100;
 	font-family: $font;
 	font-size: 12px;
@@ -118,14 +117,14 @@ html {
 		top: 50%;
 		margin-top: -64px;
 
-		.question, .voucher_hash{
+		.question, .voucher_hash {
 			font-size: 20px;
 			margin-bottom: 20px;
 			color: white;
 		}
 
-		.buttonarea{
-			button{
+		.buttonarea {
+			button {
 				border: 2px solid white;
 				margin: 0 5px;
 				height: 40px;
@@ -151,12 +150,83 @@ html {
 		background-color: rgba(0, 0, 0, 0.8);
 	}
 
+	&.mm-opening{
+		.hamburger {
+			transform: rotate(45deg);
+
+			span {
+				&:before {
+					transform: rotate(90deg);
+				}
+
+				&:after {
+					transform: rotate(90deg);
+				}
+			}
+
+		}
+	}
+
+	#menu-icon {
+		position: absolute;
+		display: none;
+		top: 10px;
+		left: 10px;
+		width: 100%;
+		height: 3em;
+		cursor: pointer;
+		box-sizing: border-box;
+		z-index: 4;
+		-webkit-tap-highlight-color: rgba(0,0,0,0);
+		-webkit-tap-highlight-color: transparent; /* For some Androids */
+
+
+		.hamburger{
+			height: 3em;
+			width: 3em;
+			transition: all 0.3s;
+			position: relative;
+			float: left;
+		}
+	}
+
+	span {
+		position: absolute;
+		top: 50%;
+		display: block;
+		width: 100%;
+		height: 0.25em;
+		margin-top: -0.5em;
+		background-color: $color_link;
+
+		&:before,
+		&:after {
+			content: "";
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			background-color: $color_link;
+			transition: all 0.3s;
+		}
+
+		&:before {
+			transform: translateY(-1em);
+		}
+
+		&:after {
+			transform: translateY(1em);
+		}
+	}
+
 	header {
-		display: inline-block;
-		float: right;
-		right: 0;
-		top: 0;
+		display: none;
+		position: absolute;
+		width: 100%;
+		text-align: right;
+		z-index: 1;
 		line-height: 30px;
+		top: 10px;
+		right: 10px;
 
 		.tokens {
 			display: inline-block;
@@ -200,7 +270,7 @@ html {
 
 		#countries, #bet_countries {
 			width: 80%;
-			padding: 40px;
+			padding: 10px 5px;
 			margin: 30px 0;
 			border-radius: 0;
 			background-color: rgba(255, 255, 255, .1);
@@ -296,383 +366,308 @@ html {
 		}
 	}
 
-	#container {
-		display: none;
-		position: relative;
-		height: 100%;
-		width: 100%;
-		left: 0;
-		transition: left 0.4s ease-in-out;
+	#sidebar {
+		background: $color_link_dark url("../img/mountains.png") no-repeat bottom;
+		background-size: 100%;
+		border-right: 2px solid rgba(0, 0, 0, 0.2);
 
-		&.open-sidebar {
-			left: 240px;
-		}
+		ul {
+			li {
+				padding: 15px 20px;
+				font-size: 16px;
+				font-weight: 100;
+				color: white;
+				border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+				box-shadow: none;
 
-		#sidebar {
-			position: absolute;
-			width: 240px;
-			height: 100%;
-			left: -240px;
-			box-sizing: border-box;
-			background: $color_link_dark url("../img/mountains.png") no-repeat bottom;
-			background-size: contain;
-			border-right: 1px solid rgba(0, 0, 0, 0.2);
+				&:hover, &.active {
+					background: $color_link;
+				}
 
-			ul {
-				margin: 0;
-				padding: 0;
-				list-style: none;
-
-				li {
-					margin: 0;
-					padding: 15px 20px;
-					font-size: 16px;
-					font-weight: 100;
-					color: white;
-					text-decoration: none;
-					display: block;
-					border-bottom: 2px solid rgba(0, 0, 0, 0.2);
-					transition: background 0.3s ease-in-out;
-
-					&:hover, &.active {
-						background: $color_link;
-					}
+				&:after{
+					display:none;
 				}
 			}
 		}
+	}
 
-		.main-content {
-			width: 100%;
-			height: 100%;
-			padding: 10px;
-			box-sizing: border-box;
+	#container {
+		display: block;
+		position: relative;
+		padding: 20px 10px;
+		width: 100%;
+		left: 0;
+
+		.error {
+			font-size: $font_size;
+			width: 80%;
+			margin: 0 auto;
+		}
+
+		.manual {
+			h1 {
+				font-size: 24px;
+				padding-bottom: 10px;
+			}
+
+			h2 {
+				font-size: 18px;
+				padding: 15px 0 5px;
+			}
+
+			p {
+				font-size: 14px;
+			}
+		}
+
+		.content {
 			position: relative;
-			overflow: scroll;
+			margin-top: 60px;
+			display: none;
+			text-align: center;
+			width: 100%;
+			box-sizing: border-box;
 
-			.menu-icon {
-				display: block;
-				position: relative;
-				float: left;
-				width: 3em;
-				height: 3em;
-				cursor: pointer;
-				transition: all 0.3s;
+			h1 {
+				font-weight: 100;
+			}
 
-				&.open {
-					transform: rotate(45deg);
+			p {
+				width: 100%;
+				line-height: 160%;
+			}
 
-					span {
-						&:before {
-							transform: rotate(90deg);
+			&.home {
+				.medals {
+					width: 100%;
+					height: 184px;
+					margin: 60px 0 0;
+					padding: 10px 0 20px;
+					border-radius: 5px 5px 0 0;
+					border: 2px solid #ffffff;
+					background-color: rgba(255, 255, 255, .1);
+
+					.country {
+						display: block;
+						line-height: 30px;
+						padding-bottom: 10px;
+						margin-bottom: 20px;
+						border-bottom: 2px solid #ffffff;
+
+						.country_name {
+							padding-left: 10px;
+							vertical-align: middle;
+							font-size: 30px;
+							display: inline-block;
+						}
+					}
+
+					.medal {
+						width: 33%;
+						display: inline-block;
+						float: left;
+
+						.img {
+							width: 100%;
+
+							img {
+								width: 50px;
+							}
+						}
+
+						.number {
+							margin-top: 10px;
+							font-size: 30px;
 						}
 
 						&:after {
-							transform: rotate(90deg);
-						}
-					}
-
-				}
-			}
-
-			span {
-				position: absolute;
-				top: 50%;
-				display: block;
-				width: 100%;
-				height: 0.25em;
-				margin-top: -0.5em;
-				background-color: $color_link;
-
-				&:before,
-				&:after {
-					content: "";
-					position: absolute;
-					width: 100%;
-					height: 100%;
-					background-color: $color_link;
-					transition: all 0.3s;
-				}
-
-				&:before {
-					transform: translateY(-1em);
-				}
-
-				&:after {
-					transform: translateY(1em);
-				}
-			}
-
-			.error {
-				font-size: $font_size;
-				width: 80%;
-				margin: 0 auto;
-			}
-
-			.manual{
-				h1{
-					font-size: 24px;
-					padding-bottom: 10px;
-				}
-
-				h2{
-					font-size: 18px;
-					padding: 15px 0 5px;
-				}
-
-				p{
-					font-size: 14px;
-				}
-			}
-
-			.content {
-				position: relative;
-				margin-top: 60px;
-				display: none;
-				text-align: center;
-				width: 100%;
-				box-sizing: border-box;
-
-				h1 {
-					font-weight: 100;
-				}
-
-				p {
-					width: 100%;
-					line-height: 160%;
-				}
-
-				&.home {
-					.medals {
-						width: 100%;
-						height: 184px;
-						margin: 60px 0 0;
-						padding: 10px 0 20px;
-						border-radius: 5px 5px 0 0;
-						border: 2px solid #ffffff;
-						background-color: rgba(255, 255, 255, .1);
-
-						.country {
+							content: ".";
+							clear: both;
 							display: block;
-							line-height: 30px;
-							padding-bottom: 10px;
-							margin-bottom: 20px;
-							border-bottom: 2px solid #ffffff;
-
-							.country_name {
-								padding-left: 10px;
-								vertical-align: middle;
-								font-size: 30px;
-								display: inline-block;
-							}
-						}
-
-						.medal {
-							width: 33%;
-							display: inline-block;
-							float: left;
-
-							.img {
-								width: 100%;
-
-								img {
-									width: 50px;
-								}
-							}
-
-							.number {
-								margin-top: 10px;
-								font-size: 30px;
-							}
-
-							&:after {
-								content: ".";
-								clear: both;
-								display: block;
-								visibility: hidden;
-								height: 0px;
-							}
-						}
-					}
-
-					.link_collection {
-
-						.link {
-							display: inline-block;
-							width: 50%;
-							height: 130px;
-							padding: 20px;
-							border-left: 2px solid white;
-							border-bottom: 2px solid white;
-							float: left;
-
-							img {
-								display: block;
-								margin: 0 auto 10px;
-								background-color: transparent;
-							}
-						}
-
-						:nth-child(1) {
-							background-color: rgba(90, 0, 12, .2);
-						}
-
-						:nth-child(2) {
-							background-color: rgba(0, 61, 134, .2);
-							border-right: 2px solid white;
-						}
-
-						:nth-child(3) {
-							background-color: rgba(0, 154, 70, .2);
-							border-radius: 0 0 0 5px;
-						}
-
-						:nth-child(4) {
-							background-color: rgba(249, 135, 38, .2);
-							border-radius: 0 0 5px 0;
-							border-right: 2px solid white;
+							visibility: hidden;
+							height: 0px;
 						}
 					}
 				}
 
-				#notification {
-					display: none;
-					width: 100%;
-					padding: 10px;
-					border-radius: 5px;
-					margin: 10px auto;
-					font-size: 20px;
-					background-color: rgba(255, 255, 255, .1);
-					line-height: 24px;
-				}
+				.link_collection {
 
-				.leaderboard, .events {
-					width: 100%;
-					margin: 0 auto;
-					border-radius: 5px;
-					border: 2px solid #ffffff;
-					border-spacing: 0;
-					border-collapse: separate;
+					.link {
+						display: inline-block;
+						width: 50%;
+						height: 130px;
+						padding: 20px;
+						border-left: 2px solid white;
+						border-bottom: 2px solid white;
+						float: left;
 
-					tr {
-
-						&.exists {
-							background-color: #f98726;
+						img {
+							display: block;
+							margin: 0 auto 10px;
+							background-color: transparent;
 						}
+					}
 
-						td {
-							font-size: 20px;
-							line-height: 24px;
-							vertical-align: middle;
-							padding: 3px 5px 5px;
-							max-width: 140px;
-							word-wrap: break-word;
-							background: rgba(255, 255, 255, .1);
+					:nth-child(1) {
+						background-color: rgba(90, 0, 12, .2);
+					}
 
-							img {
-								vertical-align: middle;
-								height: 40px;
-							}
-						}
+					:nth-child(2) {
+						background-color: rgba(0, 61, 134, .2);
+						border-right: 2px solid white;
+					}
 
-						&:first-child {
-							td {
-								padding: 5px 5px 7px;
-								line-height: 34px;
-								border-bottom: 2px solid rgba(255, 255, 255, 1);
-							}
-						}
+					:nth-child(3) {
+						background-color: rgba(0, 154, 70, .2);
+						border-radius: 0 0 0 5px;
+					}
 
-						&:nth-child(2) {
-							td {
-								padding: 9px 5px 5px;
-							}
-						}
-
-						&:last-child {
-							td {
-								padding: 3px 5px 11px;
-							}
-						}
+					:nth-child(4) {
+						background-color: rgba(249, 135, 38, .2);
+						border-radius: 0 0 5px 0;
+						border-right: 2px solid white;
 					}
 				}
+			}
 
-				.voucher {
-					width: 100%;
-					margin: 20px 0;
-					height: 120px;
-					border-image: url("../img/stamp-border.png") 8 round;
-					border-width: 6px;
-					border-style: solid;
-					background: $color_background;
+			#notification {
+				display: none;
+				width: 100%;
+				padding: 10px;
+				border-radius: 5px;
+				margin: 10px auto;
+				font-size: 20px;
+				background-color: rgba(255, 255, 255, .1);
+				line-height: 24px;
+			}
 
-					&:nth-child(5).unlocked .wrapper  {
-						background-color: #5a000c;
-					}
+			.leaderboard, .events {
+				width: 100%;
+				margin: 0 auto;
+				border-radius: 5px;
+				border: 2px solid #ffffff;
+				border-spacing: 0;
+				border-collapse: separate;
 
-					&:nth-child(4).unlocked .wrapper {
-						background-color: #003d86;
-					}
+				tr {
 
-					&:nth-child(1).unlocked .wrapper {
-						background-color: #009a46;
-					}
-
-					&:nth-child(2).unlocked .wrapper {
-						background-color: #1591d4;
-					}
-
-					&:nth-child(3).unlocked .wrapper {
+					&.exists {
 						background-color: #f98726;
 					}
 
-					.wrapper {
-						width: 100%;
-						height: 100%;
-						background-color: rgba(255, 255, 255, .2);
+					td {
+						font-size: 20px;
+						line-height: 24px;
+						vertical-align: middle;
+						padding: 3px 5px 5px;
+						max-width: 140px;
+						word-wrap: break-word;
+						background: rgba(255, 255, 255, .1);
 
-						.discount, .price {
-							padding: 20px 0 24px;
-							float: left;
-							display: table-cell;
-							height: 100%;
+						img {
 							vertical-align: middle;
-							text-shadow: 1px 1px 2px black;
+							height: 40px;
+						}
+					}
 
-							&:first-child {
-								border-right: 1px dashed #ffffff;
-								width: 40%;
+					&:first-child {
+						td {
+							padding: 5px 5px 7px;
+							line-height: 34px;
+							border-bottom: 2px solid rgba(255, 255, 255, 1);
+						}
+					}
+
+					&:nth-child(2) {
+						td {
+							padding: 9px 5px 5px;
+						}
+					}
+
+					&:last-child {
+						td {
+							padding: 3px 5px 11px;
+						}
+					}
+				}
+			}
+
+			.voucher {
+				width: 100%;
+				margin: 20px 0;
+				height: 120px;
+				border-image: url("../img/stamp-border.png") 8 round;
+				border-width: 6px;
+				border-style: solid;
+				background: $color_background;
+
+				&:nth-child(5).unlocked .wrapper {
+					background-color: #5a000c;
+				}
+
+				&:nth-child(4).unlocked .wrapper {
+					background-color: #003d86;
+				}
+
+				&:nth-child(1).unlocked .wrapper {
+					background-color: #009a46;
+				}
+
+				&:nth-child(2).unlocked .wrapper {
+					background-color: #1591d4;
+				}
+
+				&:nth-child(3).unlocked .wrapper {
+					background-color: #f98726;
+				}
+
+				.wrapper {
+					width: 100%;
+					height: 100%;
+					background-color: rgba(255, 255, 255, .2);
+
+					.discount, .price {
+						padding: 20px 0 24px;
+						float: left;
+						display: table-cell;
+						height: 100%;
+						vertical-align: middle;
+						text-shadow: 1px 1px 2px black;
+
+						&:first-child {
+							border-right: 1px dashed #ffffff;
+							width: 40%;
+						}
+
+						&:nth-child(2) {
+							width: 60%;
+						}
+					}
+
+					.price {
+						p {
+							&:nth-child(1) {
+								line-height: 40px;
+								font-size: 40px;
 							}
 
 							&:nth-child(2) {
-								width: 60%;
+								font-size: 18px;
+								line-height: 20px;
 							}
 						}
+					}
 
-						.price {
-							p {
-								&:nth-child(1) {
-									line-height: 40px;
-									font-size: 40px;
-								}
-
-								&:nth-child(2) {
-									font-size: 18px;
-									line-height: 20px;
-								}
+					.discount {
+						p {
+							&:nth-child(1) {
+								line-height: 40px;
+								font-size: 40px;
 							}
-						}
 
-						.discount {
-							p {
-								&:nth-child(1) {
-									line-height: 40px;
-									font-size: 40px;
-								}
-
-								&:nth-child(2) {
-									font-size: 20px;
-									line-height: 20px;
-								}
+							&:nth-child(2) {
+								font-size: 20px;
+								line-height: 20px;
 							}
 						}
 					}

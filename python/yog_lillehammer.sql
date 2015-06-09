@@ -134,19 +134,7 @@ UNLOCK TABLES;
 /*!50003 SET collation_connection  = cp850_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`mobile`@`localhost`*/ /*!50003 TRIGGER tokenupdate BEFORE INSERT ON medals
-FOR EACH ROW
-BEGIN
-IF NEW.value = '1' THEN
-UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 2 + token;
-ELSEIF NEW.value = '2' THEN
-UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.5 + token;
-ELSEIF NEW.value = '3' THEN
-UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.2 + token;
-END IF;
-END */;;
-DELIMITER ;
+
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
@@ -178,6 +166,23 @@ LOCK TABLES `user` WRITE;
 INSERT INTO `user` VALUES ('abc',400,1),('abcd',400,73),('efgah',324,0);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER tokenupdate BEFORE INSERT ON medals
+ FOR EACH ROW
+       BEGIN
+		IF NEW.value = '1' THEN
+		    UPDATE user SET token = token + 20 WHERE user.country_id = NEW.country_id;
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 2 + token;
+		ELSEIF NEW.value = '2' THEN
+		    UPDATE user SET token = token + 15 WHERE user.country_id = NEW.country_id;
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.5 + token;
+		ELSEIF NEW.value = '3' THEN
+		    UPDATE user SET token = token + 10 WHERE user.country_id = NEW.country_id;
+			UPDATE user INNER JOIN bets ON user.user_hash = bets.user_hash AND bets.e_id = NEW.event_id AND bets.country_id = NEW.country_id SET token = bets.tokens * 1.2 + token;
+		END IF;
+END */;;
+DELIMITER ;
 
 --
 -- Table structure for table `userlogin`

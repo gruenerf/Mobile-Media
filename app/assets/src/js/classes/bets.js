@@ -43,32 +43,6 @@ var bets = (function ($) {
 		body.on('click', ".bet", function () {
 			ajax.loadSetBet($(this).data("name"), $(this).data("id"));
 		});
-
-		body.on('click', '#bet_button', function () {
-
-			// Get selected country
-			var eventId = $(this).data("id");
-			var countryVal = $('#bet_countries').val();
-			var tokenVal = $('#set_tokens').val();
-
-			// Empty error
-			var error = $('#bet_error');
-			error.empty();
-
-			if (countryVal !== null && tokenVal !== "") {
-				// Store country id and name in localstorage
-				var country = JSON.parse(countryVal);
-				var countryId = country.id;
-
-				if (tokenVal <= localStorage.tokens) {
-					websocket.setBet(eventId, countryId, tokenVal);
-				} else {
-					error.show().append('You can´t bet more tokens than you have.');
-				}
-			} else {
-				error.show().append('You have to fill out both fields.');
-			}
-		});
 	}
 
 	/**
@@ -122,10 +96,46 @@ var bets = (function ($) {
 		}
 	}
 
+	/**
+	 * Sets up betbutton
+	 */
+	function setBetButton(){
+		$('#bet_button').click(function () {
+
+			// Get selected country
+			var eventId = $(this).data("id");
+			var countryVal = $('#bet_countries').val();
+			var tokenVal = $('#set_tokens').val();
+
+			// Empty error
+			var error = $('#bet_error');
+			error.empty();
+
+			if (countryVal !== null && tokenVal !== "") {
+				// Store country id and name in localstorage
+				var country = JSON.parse(countryVal);
+				var countryId = country.id;
+
+				if (tokenVal <= parseInt(localStorage.tokens)) {
+					console.log("hallo");
+					websocket.setBet(eventId, countryId, tokenVal);
+				} else {
+					error.show().append('You can´t bet more tokens than you have.');
+				}
+			} else {
+				error.show().append('You have to fill out both fields.');
+			}
+		});
+	}
+
 	return {
 		getEvents: function () {
 			getEvents();
 			init();
+		},
+
+		setBetButton: function(){
+			setBetButton();
 		}
 	};
 

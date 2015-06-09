@@ -17,7 +17,8 @@ var websocket = (function ($) {
 		var con;
 
 		function createInstance() {
-			var websocket = new WebSocket('ws://127.0.01:9999/ws');
+			var websocket = new WebSocket('ws://46.101.173.139:9999/ws');
+			//var websocket = new WebSocket('ws://127.0.0.1:9999/ws');
 
 			websocket.onerror = function (event) {
 				throwConnectionError();
@@ -285,6 +286,8 @@ var websocket = (function ($) {
 				}]
 			};
 
+			console.log("betset");
+
 			con.getInstance().send(JSON.stringify(jsonRequest));
 			con.getInstance().onmessage = function (msg) {
 
@@ -394,9 +397,11 @@ var websocket = (function ($) {
 
 								con.getInstance().send(JSON.stringify(jsonRequest));
 								con.getInstance().onmessage = function (msg) {
+									console.log(msg);
 
 									var response = JSON.parse(msg.data);
 									localStorage.vouchers_json = JSON.stringify(response.data);
+
 									if (response.response === "success") {
 
 										// load the betscreen

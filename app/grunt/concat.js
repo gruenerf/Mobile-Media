@@ -33,8 +33,8 @@ module.exports = {
 
 				//vendor javascript, please add your vendor libraries
 				'<%= package.basedir %>assets/src/bower_components/jquery/jquery.js',
-				'<%= package.basedir %>assets/src/bower_components/jquery-touchswipe/*.js',
 				'<%= package.basedir %>assets/src/bower_components/modernizr/*.js',
+				'<%= package.basedir %>assets/src/bower_components/jQuery.mmenu/*.js',
 
 				//javascript classes
 				'<%= package.basedir %>assets/src/js/classes/*.js',

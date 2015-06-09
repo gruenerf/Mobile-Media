@@ -18,6 +18,7 @@ var main = function ( $ ) {
 		init : function() {
 			ajax.init();
 			websocket.init();
+			sidebar.init();
 		}
 	};
 
@@ -25,15 +26,22 @@ var main = function ( $ ) {
 
 
 jQuery(document).ready(function() {
+
+	function onBackKeyDown() {
+		var content = $('#content');
+
+		if (content.hasClass('home')) {
+			navigator.app.exitApp();
+		} else if (content.hasClass('setBet')) {
+			ajax.loadBets();
+		} else {
+			ajax.loadHome();
+		}
+	}
+
+	document.addEventListener("backbutton", onBackKeyDown, false);
+
 	main.init();
-});
-
-jQuery(window).load(function(){
-	document.addEventListener("deviceready", function(){
-		document.addEventListener("backbutton", cordova.init() , false);
-	}, false);
-
-	sidebar.init();
 });
 
 

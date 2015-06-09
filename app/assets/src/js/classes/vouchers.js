@@ -20,6 +20,7 @@ var vouchers = (function ($) {
 		if (localStorage.vouchers_json) {
 			var vouchersJson = JSON.parse(localStorage.vouchers_json);
 			$.each(vouchersJson, function (i, v) {
+				console.log(v);
 				if (parseInt(v.voucher_id) === 1) {
 					$("#ten").addClass("unlocked");
 				}

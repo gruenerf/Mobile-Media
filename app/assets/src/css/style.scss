@@ -87,6 +87,13 @@ a {
 	box-sizing: border-box;
 }
 
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+	outline: none;
+}
+
 body,
 html {
 	height: 100%;
@@ -567,8 +574,8 @@ html {
 							font-size: 20px;
 							line-height: 24px;
 							vertical-align: middle;
-							padding: 3px 10px 5px;
-							max-width: 160px;
+							padding: 3px 5px 5px;
+							max-width: 140px;
 							word-wrap: break-word;
 							background: rgba(255, 255, 255, .1);
 
@@ -580,7 +587,7 @@ html {
 
 						&:first-child {
 							td {
-								padding: 5px 10px 7px;
+								padding: 5px 5px 7px;
 								line-height: 34px;
 								border-bottom: 2px solid rgba(255, 255, 255, 1);
 							}
@@ -588,13 +595,13 @@ html {
 
 						&:nth-child(2) {
 							td {
-								padding: 9px 10px 5px;
+								padding: 9px 5px 5px;
 							}
 						}
 
 						&:last-child {
 							td {
-								padding: 3px 10px 11px;
+								padding: 3px 5px 11px;
 							}
 						}
 					}

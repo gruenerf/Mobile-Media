@@ -42,6 +42,15 @@ var sidebar = (function ($) {
 				}
 			}
 		});
+
+		/**
+		 * Add active class to current page in menu
+		 */
+		$(".sidebar_item").on('click', function(){
+			$(".sidebar_item").removeClass('active');
+			$(this).addClass("active");
+		});
+
 	}
 
 	/**
